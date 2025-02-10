@@ -1,0 +1,47 @@
+{%extends 'base.html'%}{%block content%}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="col-md-6 offset-md-3">
+      {%if user.is_authenticated%}
+      <h1>Home</h1>
+      {%else%}
+      <h1>Log In</h1>
+      <br />
+      <form method="POST" action="{%url 'loginUser'%}">
+        {%csrf_token%}
+        <div class="mb-3">
+          <input
+            type="text"
+            class="form-control"
+            id="exampleInputEmail1"
+            aria-describedby="emailHelp"
+            name="username"
+            placeholder="First Name"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <input
+            type="password"
+            class="form-control"
+            id="exampleInputPassword1"
+            placeholder="Password"
+            name="password"
+            required
+          />
+        </div>
+        <br />
+        <button type="submit" class="btn btn-secondary">Log In</button>
+      </form>
+      {%endif%}
+    </div>
+  </body>
+</html>
+
+{%endblock%}
