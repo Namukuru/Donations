@@ -1,4 +1,12 @@
 {%extends 'base.html'%} {%block content%}
-
-<h1>Wooooow</h1>
+{%if user.is_authenticated%}
+<h1>Wooooow you are logged in </h1>
+{%if userprofiles %}
+{%for userprofile in userprofiles %}
+{{userprofile}} <br>
+{%endfor%}
+{%endif%}
+{%else%}
+<h1>Wooooow you are not logged in </h1>
+{%endif%}
 {%endblock%}
