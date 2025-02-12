@@ -10,11 +10,16 @@ class SignUpForm(UserCreationForm):
         attrs={'class': 'form-control', 'placeholder': 'First Name'}))
     last_name = forms.CharField(label="Last Name", max_length="50", widget=forms.TextInput(
         attrs={'class': 'form-control', 'placeholder': 'Last Name'}))
+    ROLE_CHOICES = [
+        ('donor', 'Donor'),
+        ('recipient', 'Recipient'),
+    ]
+    role = forms.ChoiceField(choices=ROLE_CHOICES, label="Register as")
 
     class Meta:
         model = User
         fields = ('username', 'first_name', 'last_name',
-                  'email', 'password1', 'password2')
+                  'email', 'password1', 'password2','role')
 
     def __init__(self, *args, **kwargs):
         super(SignUpForm, self).__init__(*args, **kwargs)
