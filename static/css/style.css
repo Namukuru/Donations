@@ -1,0 +1,14 @@
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    font-size: 17px;  
+    font-family:'Roboto'; 
+  }
+  body {
+    font-family: "Lora", serif;
+    font-size: 16px;  /* Adjust for readability */
+    line-height: 1.6; /* Improves text spacing */
+    color: #333; /* Dark gray for better readability */
+  }
