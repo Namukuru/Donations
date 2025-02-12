@@ -55,7 +55,12 @@ def register_user(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()
+            form.save() #Saving the user
+            role = form.cleaned_data['role'] #Getting the selected role
+            
+            # Create a UserProfile and save the role
+            UserProfile.objects.create(user=user, role=role)
+            
             # authenticate and log them in
             username = form.cleaned_data['username']
             password = form.cleaned_data['password1']
