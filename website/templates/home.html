@@ -1,12 +1,70 @@
 {%extends 'base.html'%} {%block content%}
-{%if user.is_authenticated%}
-<h1>Wooooow you are logged in </h1>
-{%if userprofiles %}
-{%for userprofile in userprofiles %}
-{{userprofile}} <br>
-{%endfor%}
-{%endif%}
-{%else%}
-<h1>Wooooow you are not logged in </h1>
-{%endif%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <style>
+    /* Floating Button Styles */
+        .float {
+          position: fixed; /* Fixed position to keep it floating */
+          bottom: 40px; /* Distance from the bottom */
+          right: 40px; /* Distance from the right */
+          background-color: #f53636; /* Button background color */
+          color: #fff; /* Icon color */
+          text-align: center;
+          text-decoration: none; 
+          font-size: 24px; /* Icon size */
+          box-shadow: 2px 2px 3px #999; /* Shadow for depth */
+          border-radius: 8px; /* Slightly rounded corners for a rectangular shape */
+          width: 160px; /* Button width */
+          height: 50px; /* Button height */
+          line-height: 50px; /* Centers the icon vertically */
+          transition: background-color 0.3s ease; /* Smooth hover effect */
+          display: flex; /* Use flexbox for better alignment */
+          align-items: center; /* Center content vertically */
+          justify-content: center; /* Center content horizontally */
+        }
+        
+        .float:hover {
+          background-color: #e04d13; /* Change color on hover */
+          color: #fff; /* Ensure icon color stays white */
+        }
+        
+        /* Optional: Add animation for a bouncy effect */
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-10px);
+          }
+          60% {
+            transform: translateY(-5px);
+          }
+        }
+        
+        .float:hover {
+          animation: bounce 1s; /* Apply bounce animation on hover */
+        }
+    </style>
+</head>
+<body>
+    {%if user.is_authenticated%}
+    <br> <br><br>
+    <h1>Wooooow you are logged in </h1>
+    {%if userprofiles %}
+    {%for userprofile in userprofiles %}
+    {{userprofile}} <br>
+    {%endfor%}
+    {%endif%}
+    {%else%}
+    <h1>Wooooow you are not logged in </h1>
+    {%endif%}
+    <a href="{% url 'donate' %}" class="float">
+        <i class="fa fa-plus my-float"></i>
+        <span class="text">Donate Now</span>
+      </a>  
+</body>
+</html>
 {%endblock%}
