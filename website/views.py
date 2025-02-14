@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .forms import SignUpForm
-from .models import UserProfile
+from .forms import SignUpForm, DonationForm
+from .models import UserProfile, Donation
 
 # Create your views here.
 
@@ -73,3 +73,20 @@ def register_user(request):
         form = SignUpForm()
         return render(request, 'register.html', {'form': form})
     return render(request, 'register.html', {'form': form})
+
+def donate(request):
+    form = DonationForm(request.POST)
+    if request.method == 'POST':  
+        if form.is_valid():
+            donation = form.save(commit=False)
+            donation.donor = request.user  # Associate the donation with the logged-in user
+            donation.save()
+            messages.success(
+                request, "You have successfully made a donation")
+            return redirect('home')
+    else:
+        form = DonationForm()
+    return render(request, 'donate.html', {'form': form})
+
+def donation_success(request):
+    return render(request, 'donate.html',{'form': form})
