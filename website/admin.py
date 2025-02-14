@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import UserProfile, Donation
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
@@ -21,3 +21,4 @@ class CustomUserAdmin(UserAdmin):
 # Unregister the default User admin and register the custom one
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(Donation)
