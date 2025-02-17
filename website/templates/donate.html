@@ -7,13 +7,17 @@
   <title>Donate</title>
 </head>
 <body>
-  <h1>Make a Donation</h1>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Donate</button>
-    <a href="{% url 'home' %}" class="btn btn-secondary">Back</a>
-  </form>
+  <div class="col-md-6 offset-md-3">
+    <h1>Make a Donation</h1>
+    <br />
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <br>
+      <button type="submit" class="btn btn-primary">Donate</button>
+      <a href="{% url 'home' %}" class="btn btn-secondary">Back</a>
+    </form>
+  </div>
 </body>
 </html>
 {%endblock%}

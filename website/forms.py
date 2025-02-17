@@ -40,6 +40,7 @@ class SignUpForm(UserCreationForm):
         # Remove default help text
         for field_name in self.fields:
             self.fields[field_name].help_text = None
+            
 class DonationForm(forms.ModelForm):
     class Meta:
         model = Donation
