@@ -24,4 +24,4 @@ class Donation(models.Model):
     message = models.TextField(blank=True, null=True)  # Optional: Allow donors to leave a message
 
     def __str__(self):
-        return (f"Donation of ${self.amount} by {self.donor.username if self.donor else 'Anonymous'}")
+        return (f"{self.amount}  {self.donor.username}")
