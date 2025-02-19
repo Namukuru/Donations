@@ -90,3 +90,10 @@ def donate(request):
 
 def donation_success(request):
     return render(request, 'donate.html',{'form': form})
+
+def account(request):
+    # Get donations made by the logged-in user
+    donations = Donation.objects.filter(donor=request.user)
+    
+    # Render the donations to the template
+    return render(request, 'account.html', {'donations': donations})
