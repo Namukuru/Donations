@@ -5,19 +5,102 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Donate</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+    }
+    .form-container {
+        max-width: 400px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        margin: auto;
+    }
+    label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+    input, select, textarea {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
-  <div class="col-md-6 offset-md-3">
+  <div class="col-md-6 offset-md-3 form-container">
     <h1>Make a Donation</h1>
-    <br />
     <form method="post">
       {% csrf_token %}
-      {{ form.as_p }}
+      
+      <label for="{{ form.amount.id_for_label }}">Amount:</label>
+      {{ form.amount }}
+
+      <label for="{{ form.message.id_for_label }}">Message:</label>
+      {{ form.message }}
+
+      <label for="{{ form.pickup_choice.id_for_label }}">Pickup Choice:</label>
+      {{ form.pickup_choice }}
+
+      <label for="pickup-location">Pickup Location:</label>
+      {{ form.pickup_location }}
+      <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address">
+      <br>
       <br>
       <button type="submit" class="btn btn-primary">Donate</button>
-      <a href="{% url 'home' %}" class="btn btn-secondary">Back</a>
+      <a href="{% url 'account' %}" class="btn btn-secondary">Back</a>
     </form>
   </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Find elements dynamically to avoid ID mismatch issues
+        const pickupChoice = document.querySelector("select[name='pickup_choice']");  
+        const pickupLocation = document.querySelector("input[name='pickup_location']");
+    
+        // Debugging: Print elements to check if they exist
+        console.log("Pickup Choice:", pickupChoice);
+        console.log("Pickup Location:", pickupLocation);
+    
+        if (!pickupChoice || !pickupLocation) {
+            console.error("Error: Elements not found! Check form field names.");
+            return;
+        }
+    
+        pickupChoice.addEventListener("change", function () {
+            console.log("Dropdown changed to:", pickupChoice.value);
+    
+            if (pickupChoice.value === "current") {
+                getCurrentLocation();
+            } else {
+                pickupLocation.value = "";
+                pickupLocation.placeholder = "Enter preferred address";
+            }
+        });
+    
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        console.log("Location found:", position.coords.latitude, position.coords.longitude);
+                        pickupLocation.value = `${position.coords.latitude}, ${position.coords.longitude}`;
+                    },
+                    (error) => {
+                        console.error("Geolocation error:", error);
+                        alert("Error getting location. Please allow location access.");
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by your browser.");
+                console.error("Geolocation is not supported.");
+            }
+        }
+    });
+  </script>  
 </body>
 </html>
 {%endblock%}
