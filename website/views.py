@@ -80,6 +80,7 @@ def donate(request):
         if form.is_valid():
             donation = form.save(commit=False)
             donation.donor = request.user  # Associate the donation with the logged-in user
+            donation.pickup_location = request.POST.get('pickup_location')  # Save the pickup location
             donation.save()
             messages.success(
                 request, "You have successfully made a donation")
