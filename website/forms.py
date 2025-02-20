@@ -42,10 +42,18 @@ class SignUpForm(UserCreationForm):
             self.fields[field_name].help_text = None
             
 class DonationForm(forms.ModelForm):
+    PICKUP_CHOICES = [
+        ('current', 'Use Current Location'),
+        ('manual', 'Enter Another Location'),
+    ]
+    amount = forms.DecimalField(max_digits=10, decimal_places=2)
+    message = forms.CharField(widget=forms.Textarea(attrs={'cols': 40, 'rows': 3}))  # Adjust cols and rows
+    pickup_choice = forms.ChoiceField(
+        choices=PICKUP_CHOICES, widget=forms.Select(attrs={'id': 'pickup-choice'})
+    )
+    pickup_location = forms.CharField(
+        required=False,  # Only required if "manual" is selected
+        widget=forms.TextInput(attrs={'id': 'pickup-location', 'style': 'display:none;', 'placeholder': 'Enter preferred address'}))
     class Meta:
         model = Donation
-        fields = ['amount', 'message']  # Fields to include in the form
-
-    # Customize the message field to reduce the size of the text area
-    amount = forms.DecimalField(max_digits=10, decimal_places=2)
-    message = forms.CharField(widget=forms.Textarea(attrs={'cols': 40, 'rows': 3}))  # Adjust cols and rows      
+        fields = ['amount', 'message','pickup_choice','pickup_location']  # Fields to include in the form
