@@ -31,6 +31,12 @@
         border: 1px solid #ccc;
         border-radius: 5px;
     }
+    .donation-type {
+        margin-bottom: 20px;
+    }
+    .hidden {
+        display: none;
+    }
   </style>
 </head>
 <body>
@@ -38,13 +44,36 @@
     <h1>Make a Donation</h1>
     <form method="post">
       {% csrf_token %}
-      
-      <label for="{{ form.amount.id_for_label }}">Amount:</label>
-      {{ form.amount }}
 
-      <label for="{{ form.message.id_for_label }}">Message:</label>
-      {{ form.message }}
+      <!-- Donation Type Selection -->
+      <label for="donation-type">Donation Type:</label>
+      <select id="donation-type" name="donation_type" class="donation-type">
+        <option value="monetary">Monetary Donation</option>
+        <option value="in-kind">In-Kind Donation</option>
+      </select>
 
+      <!-- Monetary Donation Fields -->
+      <div id="monetary-fields">
+        <label for="{{ form.amount.id_for_label }}">Amount:</label>
+        {{ form.amount }}
+
+        <label for="{{ form.message.id_for_label }}">Message:</label>
+        {{ form.message }}
+      </div>
+
+      <!-- In-Kind Donation Fields -->
+      <div id="in-kind-fields" class="hidden">
+        <label for="item-name">Item Name:</label>
+        <input type="text" id="item-name" name="item_name" placeholder="Enter item name">
+
+        <label for="item-description">Item Description:</label>
+        <textarea id="item-description" name="item_description" placeholder="Describe the item"></textarea>
+
+        <label for="item-quantity">Quantity:</label>
+        <input type="number" id="item-quantity" name="item_quantity" placeholder="Enter quantity">
+      </div>
+
+      <!-- Pickup Choice -->
       <label for="{{ form.pickup_choice.id_for_label }}">Pickup Choice:</label>
       {{ form.pickup_choice }}
 
@@ -58,9 +87,27 @@
   </div>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const donationType = document.querySelector("#donation-type");
+        const monetaryFields = document.querySelector("#monetary-fields");
+        const inKindFields = document.querySelector("#in-kind-fields");
+        const pickupSection = document.querySelector("#pickup-section"); // Reference for pickup fields
         const pickupChoice = document.querySelector("select[name='pickup_choice']");
         const pickupLocation = document.querySelector("input[name='pickup_location']");
 
+        // Show/hide fields based on donation type
+        donationType.addEventListener("change", function () {
+            if (donationType.value === "monetary") {
+                monetaryFields.classList.remove("hidden");
+                inKindFields.classList.add("hidden");
+                pickupSection.classList.add("hidden");
+
+            } else {
+                monetaryFields.classList.add("hidden");
+                inKindFields.classList.remove("hidden");
+            }
+        });
+
+        // Handle pickup choice logic
         pickupChoice.addEventListener("change", function () {
             if (pickupChoice.value === "current") {
                 pickupLocation.disabled = false;  // Enable it before submitting
@@ -87,8 +134,7 @@
             }
         }
     });
-</script>
-  
+  </script>
 </body>
 </html>
 {% endblock %}

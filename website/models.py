@@ -17,11 +17,23 @@ class UserProfile(models.Model):
         return (f"{self.user.username}'s Profile")
 
 class Donation(models.Model):
-    donor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Optional: Allow anonymous donations
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    DONATION_TYPES = [
+        ("monetary", "Monetary"),
+        ("in_kind", "In-Kind"),
+    ]
+    
+    donation_type = models.CharField(max_length=20, choices=DONATION_TYPES, default="monetary")
+    donor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    message = models.TextField(blank=True, null=True)  # Optional: Allow donors to leave a message
+    message = models.TextField(blank=True, null=True)
+    # Monetary Donation Fields
+    amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    # In-Kind Donation Fields
+    item_name = models.CharField(max_length=255, blank=True, null=True)
+    quantity = models.PositiveIntegerField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    # Pickup Details
     pickup_location = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):

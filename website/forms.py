@@ -56,4 +56,4 @@ class DonationForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'id': 'pickup-location', 'style': 'display:none;', 'placeholder': 'Enter preferred address'}))
     class Meta:
         model = Donation
-        fields = ['amount', 'message','pickup_choice','pickup_location']  # Fields to include in the form
+        fields = ['amount', 'message','pickup_choice','pickup_location','item_name','quantity','description',]  # Fields to include in the form

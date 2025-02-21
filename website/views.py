@@ -80,6 +80,15 @@ def donate(request):
         if form.is_valid():
             donation = form.save(commit=False)
             donation.donor = request.user  # Associate the donation with the logged-in user
+            # Ensure correct fields are saved
+            if donation.donation_type == "monetary":
+                donation.item_name = None
+                donation.quantity = None
+                donation.description = None
+            else:
+                donation.amount = None
+                donation.message = None
+            
             donation.pickup_location = request.POST.get('pickup_location')  # Save the pickup location
             donation.save()
             messages.success(
