@@ -73,12 +73,15 @@
         <input type="number" id="item-quantity" name="item_quantity" placeholder="Enter quantity">
       </div>
 
-      <!-- Pickup Choice -->
-      <label for="{{ form.pickup_choice.id_for_label }}">Pickup Choice:</label>
-      {{ form.pickup_choice }}
+      <!-- Pickup Section -->
+      <div id="pickup-section" class="hidden">
+        <label for="{{ form.pickup_choice.id_for_label }}">Pickup Choice:</label>
+        {{ form.pickup_choice }}
 
-      <label for="pickup-location">Pickup Location:</label>
-      <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address" disabled>
+        <label for="pickup-location">Pickup Location:</label>
+        <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address" disabled>
+      </div>
+
       <br>
       <br>
       <button type="submit" class="btn btn-primary">Donate</button>
@@ -97,13 +100,15 @@
         // Show/hide fields based on donation type
         donationType.addEventListener("change", function () {
             if (donationType.value === "monetary") {
+                // Show monetary fields, hide in-kind and pickup fields
                 monetaryFields.classList.remove("hidden");
                 inKindFields.classList.add("hidden");
                 pickupSection.classList.add("hidden");
-
             } else {
+                // Show in-kind and pickup fields, hide monetary fields
                 monetaryFields.classList.add("hidden");
                 inKindFields.classList.remove("hidden");
+                pickupSection.classList.remove("hidden");
             }
         });
 
