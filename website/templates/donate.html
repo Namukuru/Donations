@@ -1,4 +1,5 @@
-{%extends 'base.html'%} {%block content%}
+{% extends 'base.html' %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -48,8 +49,7 @@
       {{ form.pickup_choice }}
 
       <label for="pickup-location">Pickup Location:</label>
-      {{ form.pickup_location }}
-      <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address">
+      <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address" disabled>
       <br>
       <br>
       <button type="submit" class="btn btn-primary">Donate</button>
@@ -58,49 +58,37 @@
   </div>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Find elements dynamically to avoid ID mismatch issues
-        const pickupChoice = document.querySelector("select[name='pickup_choice']");  
+        const pickupChoice = document.querySelector("select[name='pickup_choice']");
         const pickupLocation = document.querySelector("input[name='pickup_location']");
-    
-        // Debugging: Print elements to check if they exist
-        console.log("Pickup Choice:", pickupChoice);
-        console.log("Pickup Location:", pickupLocation);
-    
-        if (!pickupChoice || !pickupLocation) {
-            console.error("Error: Elements not found! Check form field names.");
-            return;
-        }
-    
+
         pickupChoice.addEventListener("change", function () {
-            console.log("Dropdown changed to:", pickupChoice.value);
-    
             if (pickupChoice.value === "current") {
+                pickupLocation.disabled = false;  // Enable it before submitting
                 getCurrentLocation();
             } else {
+                pickupLocation.disabled = false;
                 pickupLocation.value = "";
                 pickupLocation.placeholder = "Enter preferred address";
             }
         });
-    
+
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        console.log("Location found:", position.coords.latitude, position.coords.longitude);
                         pickupLocation.value = `${position.coords.latitude}, ${position.coords.longitude}`;
                     },
                     (error) => {
-                        console.error("Geolocation error:", error);
                         alert("Error getting location. Please allow location access.");
                     }
                 );
             } else {
                 alert("Geolocation is not supported by your browser.");
-                console.error("Geolocation is not supported.");
             }
         }
     });
-  </script>  
+</script>
+  
 </body>
 </html>
-{%endblock%}
+{% endblock %}
