@@ -7,8 +7,16 @@
     <title>My Account</title>
 </head>
 <body>
-    <h1>Welcome {{ user.username }}</h1>
-    <br />
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h1>Welcome {{ user.username }}</h1>
+    </div>
+    <div class="total-donations">
+      <h3 class="mb-0">Total Donations: ${{ total_donations }}</h3>
+      <br>
+    </div>
+  </div>
+  {%if donations%}
     <table class="table table-striped table-hover table-bordered">
         <thead class="table-dark">
           <tr>
@@ -32,6 +40,12 @@
     {%endif%}
     </table>
     <br>
+  {%else%}
+    <!-- Display a message if no donations exist -->
+    <div class="alert alert-info" role="alert">
+      You don't have any donations.
+    </div>
+  {% endif %}
     <a class="btn btn-secondary" href="{%url 'donate'%}"
 						>Donate</a
 					>
