@@ -46,8 +46,12 @@ class DonationForm(forms.ModelForm):
         ('current', 'Use Current Location'),
         ('manual', 'Enter Another Location'),
     ]
+    donation_type = forms.ChoiceField(choices=[('monetary', 'Monetary'), ('in-kind', 'In-Kind')])
     amount = forms.DecimalField(max_digits=10, decimal_places=2)
     message = forms.CharField(widget=forms.Textarea(attrs={'cols': 40, 'rows': 3}))  # Adjust cols and rows
+    item_name = forms.CharField(required=False) # Required for in-kind donations
+    item_description = forms.CharField(required=False) # Required for in-kind donations
+    item_quantity = forms.IntegerField(required=False) # Required for in-kind donations
     pickup_choice = forms.ChoiceField(
         choices=PICKUP_CHOICES, widget=forms.Select(attrs={'id': 'pickup-choice'})
     )

@@ -22,7 +22,7 @@ class Donation(models.Model):
         ("in_kind", "In-Kind"),
     ]
     
-    donation_type = models.CharField(max_length=20, choices=DONATION_TYPES, default="monetary")
+    donation_type = models.CharField(max_length=20, choices=DONATION_TYPES)
     donor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -30,7 +30,7 @@ class Donation(models.Model):
     # Monetary Donation Fields
     amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     # In-Kind Donation Fields
-    item_name = models.CharField(max_length=255, blank=True, null=True)
+    item_name = models.CharField(max_length=255, blank=True, null=True, default="Money")
     quantity = models.PositiveIntegerField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     # Pickup Details
