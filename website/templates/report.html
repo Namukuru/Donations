@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Report</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Donation Report</h1>
+
+    {% if is_superuser %}
+      <!-- Display total donations and number of donors -->
+      <div class="mb-4">
+        <div class="bg-primary p-3 rounded text-white mb-3">
+          <h3 class="mb-0">Total Donations:</h3>
+          <p class="mb-0">${{ total_donations }}</p>
+        </div>
+        <div class="bg-success p-3 rounded text-white">
+          <h3 class="mb-0">Number of Donors:</h3>
+          <p class="mb-0">{{ number_of_donors }}</p>
+        </div>
+      </div>
+
+      <!-- Display donations per donor -->
+      <h2>Donations by Donor</h2>
+      <table class="table table-striped table-hover table-bordered">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">Donor</th>
+            <th scope="col">Total Donated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for donor in donations_per_donor %}
+            <tr>
+              <td>{{ donor.donor__username }}</td>
+              <td>${{ donor.total_donated }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <!-- Display a message for non-superusers -->
+      <div class="alert alert-warning" role="alert">
+        You do not have permission to view this report.
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>
+{% endblock %}
