@@ -42,8 +42,24 @@
 <body>
   <div class="col-md-6 offset-md-3 form-container">
     <h1>Make a Donation</h1>
-    <form method="post">
+    <form method="post" action="{% url 'donate' %}" onsubmit="return validateForm()">
       {% csrf_token %}
+
+      {% if form.errors %}
+        <div class="alert alert-danger">
+          <strong>Error:</strong> Please correct the errors below.
+          <ul>
+            {% for field in form %}
+              {% for error in field.errors %}
+                <li>{{ field.label }}: {{ error }}</li>
+              {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
 
       <!-- Donation Type Selection -->
       <label for="donation-type">Donation Type:</label>
@@ -55,10 +71,10 @@
       <!-- Monetary Donation Fields -->
       <div id="monetary-fields">
         <label for="{{ form.amount.id_for_label }}">Amount:</label>
-        {{ form.amount }}
+        <input type="number" id="{{ form.amount.id_for_label }}" name="amount" placeholder="Enter amount">
 
         <label for="{{ form.message.id_for_label }}">Message:</label>
-        {{ form.message }}
+        <textarea id="{{ form.message.id_for_label }}" name="message" placeholder="Enter message"></textarea>
       </div>
 
       <!-- In-Kind Donation Fields -->
@@ -76,7 +92,10 @@
       <!-- Pickup Section -->
       <div id="pickup-section" class="hidden">
         <label for="{{ form.pickup_choice.id_for_label }}">Pickup Choice:</label>
-        {{ form.pickup_choice }}
+        <select id="{{ form.pickup_choice.id_for_label }}" name="pickup_choice">
+          <option value="current">Use Current Location</option>
+          <option value="other">Enter Address</option>
+        </select>
 
         <label for="pickup-location">Pickup Location:</label>
         <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address" disabled>
@@ -88,29 +107,51 @@
       <a href="{% url 'account' %}" class="btn btn-secondary">Back</a>
     </form>
   </div>
+
   <script>
     document.addEventListener("DOMContentLoaded", function () {
         const donationType = document.querySelector("#donation-type");
         const monetaryFields = document.querySelector("#monetary-fields");
         const inKindFields = document.querySelector("#in-kind-fields");
-        const pickupSection = document.querySelector("#pickup-section"); // Reference for pickup fields
+        const pickupSection = document.querySelector("#pickup-section");
         const pickupChoice = document.querySelector("select[name='pickup_choice']");
         const pickupLocation = document.querySelector("input[name='pickup_location']");
 
-        // Show/hide fields based on donation type
-        donationType.addEventListener("change", function () {
+        // Function to toggle fields and handle required attributes
+        function toggleFields() {
             if (donationType.value === "monetary") {
-                // Show monetary fields, hide in-kind and pickup fields
+                // Show monetary fields, hide in-kind fields
                 monetaryFields.classList.remove("hidden");
                 inKindFields.classList.add("hidden");
                 pickupSection.classList.add("hidden");
+
+                // Add required to monetary fields
+                document.querySelector("#{{ form.amount.id_for_label }}").setAttribute("required", true);
+                document.querySelector("#{{ form.message.id_for_label }}").setAttribute("required", true);
+
+                // Remove required from in-kind fields
+                document.getElementById("item-name").removeAttribute("required");
+                document.getElementById("item-description").removeAttribute("required");
+                document.getElementById("item-quantity").removeAttribute("required");
             } else {
-                // Show in-kind and pickup fields, hide monetary fields
+                // Show in-kind fields, hide monetary fields
                 monetaryFields.classList.add("hidden");
                 inKindFields.classList.remove("hidden");
                 pickupSection.classList.remove("hidden");
+
+                // Remove required from monetary fields
+                document.querySelector("#{{ form.amount.id_for_label }}").removeAttribute("required");
+                document.querySelector("#{{ form.message.id_for_label }}").removeAttribute("required");
+
+                // Add required to in-kind fields
+                document.getElementById("item-name").setAttribute("required", true);
+                document.getElementById("item-description").setAttribute("required", true);
+                document.getElementById("item-quantity").setAttribute("required", true);
             }
-        });
+        }
+
+        // Handle donation type change
+        donationType.addEventListener("change", toggleFields);
 
         // Handle pickup choice logic
         pickupChoice.addEventListener("change", function () {
@@ -124,6 +165,7 @@
             }
         });
 
+        // Function to get current location
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
@@ -138,7 +180,36 @@
                 alert("Geolocation is not supported by your browser.");
             }
         }
+
+        // Call toggleFields initially to set the correct state
+        toggleFields();
     });
+
+    // Custom form validation
+    function validateForm() {
+        const donationType = document.querySelector("#donation-type").value;
+
+        if (donationType === "monetary") {
+            const amount = document.querySelector("#{{ form.amount.id_for_label }}").value;
+            const message = document.querySelector("#{{ form.message.id_for_label }}").value;
+
+            if (!amount || !message) {
+                alert("Please fill out all required fields for monetary donations.");
+                return false;
+            }
+        } else {
+            const itemName = document.getElementById("item-name").value;
+            const itemDescription = document.getElementById("item-description").value;
+            const itemQuantity = document.getElementById("item-quantity").value;
+
+            if (!itemName || !itemDescription || !itemQuantity) {
+                alert("Please fill out all required fields for in-kind donations.");
+                return false;
+            }
+        }
+
+        return true;
+    }
   </script>
 </body>
 </html>
