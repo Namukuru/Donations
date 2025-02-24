@@ -71,10 +71,9 @@
       <!-- Monetary Donation Fields -->
       <div id="monetary-fields">
         <label for="{{ form.amount.id_for_label }}">Amount:</label>
-        <input type="number" id="{{ form.amount.id_for_label }}" name="amount" placeholder="Enter amount">
-
+        {{ form.amount }}  <!-- Use Django's form field rendering -->
         <label for="{{ form.message.id_for_label }}">Message:</label>
-        <textarea id="{{ form.message.id_for_label }}" name="message" placeholder="Enter message"></textarea>
+        {{ form.message }}  <!-- Use Django's form field rendering -->
       </div>
 
       <!-- In-Kind Donation Fields -->

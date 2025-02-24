@@ -42,22 +42,20 @@ class SignUpForm(UserCreationForm):
             self.fields[field_name].help_text = None
             
 class DonationForm(forms.ModelForm):
-    PICKUP_CHOICES = [
-        ('current', 'Use Current Location'),
-        ('manual', 'Enter Another Location'),
-    ]
-    donation_type = forms.ChoiceField(choices=[('monetary', 'Monetary'), ('in-kind', 'In-Kind')])
-    amount = forms.DecimalField(max_digits=10, decimal_places=2)
-    message = forms.CharField(widget=forms.Textarea(attrs={'cols': 40, 'rows': 3}))  # Adjust cols and rows
-    item_name = forms.CharField(required=False) # Required for in-kind donations
-    item_description = forms.CharField(required=False) # Required for in-kind donations
-    item_quantity = forms.IntegerField(required=False) # Required for in-kind donations
-    pickup_choice = forms.ChoiceField(
-        choices=PICKUP_CHOICES, widget=forms.Select(attrs={'id': 'pickup-choice'})
-    )
-    pickup_location = forms.CharField(
-        required=False,  # Only required if "manual" is selected
-        widget=forms.TextInput(attrs={'id': 'pickup-location', 'style': 'display:none;', 'placeholder': 'Enter preferred address'}))
     class Meta:
         model = Donation
-        fields = ['amount', 'message','pickup_choice','pickup_location','item_name','quantity','description',]  # Fields to include in the form
+        fields = ["donation_type", "amount", "message", "item_name", "quantity", "description", "pickup_location"]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        donation_type = cleaned_data.get("donation_type")
+        amount = cleaned_data.get("amount")
+        item_name = cleaned_data.get("item_name")
+        quantity = cleaned_data.get("quantity")
+
+        if donation_type == "monetary" and not amount:
+            raise forms.ValidationError("Amount is required for monetary donations.")
+        elif donation_type == "in_kind" and not item_name:
+            raise forms.ValidationError("Item name is required for in-kind donations.")
+
+        return cleaned_data

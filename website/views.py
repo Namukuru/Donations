@@ -75,24 +75,24 @@ def register_user(request):
     return render(request, 'register.html', {'form': form})
 
 def donate(request):
-    form = DonationForm(request.POST)
-    if request.method == 'POST':  
+    if request.method == 'POST':
+        form = DonationForm(request.POST)
         if form.is_valid():
             donation = form.save(commit=False)
             donation.donor = request.user  # Associate the donation with the logged-in user
-            # Ensure correct fields are saved
+
+            # Ensure correct fields are saved based on donation type
             if donation.donation_type == "monetary":
                 donation.item_name = None
                 donation.quantity = None
                 donation.description = None
+                donation.pickup_location = None  # No pickup location for monetary donations
             else:
-                donation.amount = None
-                donation.message = None
-            
-            donation.pickup_location = request.POST.get('pickup_location')  # Save the pickup location
-            donation.save()
-            messages.success(
-                request, "You have successfully made a donation")
+                donation.amount = None  # No amount for in-kind donations
+                donation.message = None  # No message for in-kind donations
+
+            donation.save()  # Save the donation to the database
+            messages.success(request, "You have successfully made a donation")
             return redirect('home')
     else:
         form = DonationForm()
