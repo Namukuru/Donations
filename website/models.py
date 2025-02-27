@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 ROLE_CHOICES = [
     ('donor', 'Donor'),
     ('recipient', 'Recipient'),
-    ('admin', 'Admin'),
 ]
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -31,8 +30,8 @@ class Donation(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     # In-Kind Donation Fields
     item_name = models.CharField(max_length=255, blank=True, null=True, default="Money")
-    quantity = models.PositiveIntegerField(blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
+    item_quantity = models.PositiveIntegerField(blank=True, null=True)
+    item_description = models.TextField(blank=True, null=True)
     # Pickup Details
     pickup_location = models.CharField(max_length=255, blank=True, null=True)
 

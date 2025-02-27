@@ -76,6 +76,7 @@ def register_user(request):
 
 def donate(request):
     if request.method == 'POST':
+        print(request.POST)
         form = DonationForm(request.POST)
         if form.is_valid():
             donation = form.save(commit=False)
@@ -84,8 +85,8 @@ def donate(request):
             # Ensure correct fields are saved based on donation type
             if donation.donation_type == "monetary":
                 donation.item_name = None
-                donation.quantity = None
-                donation.description = None
+                donation.item_quantity = None
+                donation.item_description = None
                 donation.pickup_location = None  # No pickup location for monetary donations
             else:
                 donation.amount = None  # No amount for in-kind donations
@@ -131,8 +132,8 @@ def report(request):
 
     # In-kind donations per donor
     in_kind_donations_per_donor = Donation.objects.filter(donation_type="in_kind").values('donor__username').annotate(
-        total_items=Sum('quantity'),
-        total_donated=Sum('quantity')  # Assuming you want to count items as "total donated"
+        total_items=Sum('item_quantity'),
+        total_donated=Sum('item_quantity')  # Assuming you want to count items as "total donated"
     )
 
     context = {
@@ -141,4 +142,4 @@ def report(request):
         'donations_per_donor': donations_per_donor,
         'in_kind_donations_per_donor': in_kind_donations_per_donor,
     }
-    return render(request, 'donation_report.html', context)
+    return render(request, 'report.html', context)

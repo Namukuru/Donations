@@ -44,18 +44,29 @@ class SignUpForm(UserCreationForm):
 class DonationForm(forms.ModelForm):
     class Meta:
         model = Donation
-        fields = ["donation_type", "amount", "message", "item_name", "quantity", "description", "pickup_location"]
+        fields = ["donation_type", "amount", "message", "item_name", "item_quantity", "item_description", "pickup_location"]
 
     def clean(self):
         cleaned_data = super().clean()
         donation_type = cleaned_data.get("donation_type")
         amount = cleaned_data.get("amount")
         item_name = cleaned_data.get("item_name")
-        quantity = cleaned_data.get("quantity")
+        item_quantity = cleaned_data.get("item_quantity")
+        item_description = cleaned_data.get("item_description")
 
-        if donation_type == "monetary" and not amount:
-            raise forms.ValidationError("Amount is required for monetary donations.")
-        elif donation_type == "in_kind" and not item_name:
-            raise forms.ValidationError("Item name is required for in-kind donations.")
-
+        if donation_type == "monetary":
+            if not amount:
+                raise forms.ValidationError("Amount is required for monetary donations.")
+            # Clear in-kind fields for monetary donations
+            cleaned_data["item_name"] = None
+            cleaned_data["item_quantity"] = None
+            cleaned_data["item_description"] = None
+            cleaned_data["pickup_location"] = None
+        elif donation_type == "in_kind":
+            if not item_name:
+                raise forms.ValidationError("Item name is required for in-kind donations.")
+            if not item_quantity:
+                raise forms.ValidationError("Quantity is required for in-kind donations.")
+            # Clear monetary field for in-kind donations
+            cleaned_data["amount"] = None
         return cleaned_data

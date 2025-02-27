@@ -24,7 +24,7 @@ class CustomUserAdmin(UserAdmin):
     
 @admin.register(Donation)
 class DonationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'donor', 'amount','message','pickup_location', 'created_at','item_name','description')  # Columns displayed in the list view
+    list_display = ('id', 'donor', 'amount','message','pickup_location', 'created_at','item_name','item_description','item_quantity')  # Columns displayed in the list view
     list_filter = ('created_at',)  # Adds a filter on the right side
     search_fields = ('donor_name',)  # Enables search by donor name
     ordering = ('-created_at',)  # Orders by most recent donations first
