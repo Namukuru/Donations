@@ -102,44 +102,43 @@ def donation_success(request):
     return render(request, 'donate.html',{'form': form})
 
 def account(request):
-    # Get donations made by the logged-in user
     donations = Donation.objects.filter(donor=request.user)
+    
+    # Separate monetary and in-kind donations
+    monetary_donations = donations.filter(donation_type="monetary")
+    in_kind_donations = donations.filter(donation_type="in_kind")
     
     # Calculate the total donations for the logged-in user only
     total_donations = donations.aggregate(total=Sum('amount'))['total'] or 0
     
-    # Render the donations to the template
-    return render(request, 'account.html', {
-        'donations': donations,
+    context = {
+        'monetary_donations': monetary_donations,
+        'in_kind_donations': in_kind_donations,
         'total_donations': total_donations,
-    })
+    }
+    return render(request, 'account.html', context)
 
 def about(request):
     return render(request, 'about.html', {})
 
 def report(request):
-    # Check if the user is a superuser
-    if request.user.is_superuser:
-        # Calculate the total donations for all users
-        total_donations = Donation.objects.aggregate(total=Sum('amount'))['total'] or 0
-        
-        # Get the number of unique donors
-        number_of_donors = Donation.objects.values('donor').distinct().count()
-        
-        # Get the total donations per donor
-        donations_per_donor = Donation.objects.values('donor__username').annotate(
-            total_donated=Sum('amount')
-        ).order_by('-total_donated')
-        
-        # Render the report template with the data
-        return render(request, 'report.html', {
-            'total_donations': total_donations,
-            'number_of_donors': number_of_donors,
-            'donations_per_donor': donations_per_donor,
-            'is_superuser': True,
-        })
-    else:
-        # If the user is not a superuser, display a message or redirect
-        return render(request, 'report.html', {
-            'is_superuser': False,
-        })
+    # Calculate total donations and number of donors
+    total_donations = Donation.objects.filter(donation_type="monetary").aggregate(total=Sum('amount'))['total'] or 0
+    number_of_donors = Donation.objects.values('donor').distinct().count()
+
+    # Donations per donor (monetary)
+    donations_per_donor = Donation.objects.filter(donation_type="monetary").values('donor__username').annotate(total_donated=Sum('amount'))
+
+    # In-kind donations per donor
+    in_kind_donations_per_donor = Donation.objects.filter(donation_type="in_kind").values('donor__username').annotate(
+        total_items=Sum('quantity'),
+        total_donated=Sum('quantity')  # Assuming you want to count items as "total donated"
+    )
+
+    context = {
+        'total_donations': total_donations,
+        'number_of_donors': number_of_donors,
+        'donations_per_donor': donations_per_donor,
+        'in_kind_donations_per_donor': in_kind_donations_per_donor,
+    }
+    return render(request, 'donation_report.html', context)
