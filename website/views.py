@@ -6,6 +6,8 @@ from .models import UserProfile, Donation
 from django.db import models
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Sum, Count
+import requests
+from django.conf import settings
 
 def home(request):
     userprofiles = UserProfile.objects.all()
@@ -102,12 +104,22 @@ def donate(request):
 def donation_success(request):
     return render(request, 'donate.html',{'form': form})
 
+def about(request):
+    return render(request, 'about.html', {})
+
 def account(request):
     donations = Donation.objects.filter(donor=request.user)
     
     # Separate monetary and in-kind donations
     monetary_donations = donations.filter(donation_type="monetary")
     in_kind_donations = donations.filter(donation_type="in_kind")
+    
+    # Convert pickup_location (coordinates) into an address
+    for donation in in_kind_donations:
+        if donation.pickup_location:
+            donation.pickup_address = get_address_from_coordinates(donation.pickup_location)
+        else:
+            donation.pickup_address = "No pickup location provided"
     
     # Calculate the total donations for the logged-in user only
     total_donations = donations.aggregate(total=Sum('amount'))['total'] or 0
@@ -119,27 +131,41 @@ def account(request):
     }
     return render(request, 'account.html', context)
 
-def about(request):
-    return render(request, 'about.html', {})
+def get_address_from_coordinates(coordinates):
+    """Convert latitude, longitude to a human-readable address using Google Maps API"""
+    if not coordinates:
+        return "No pickup location provided"
+
+    lat, lng = coordinates.split(", ")
+    google_maps_api_key = settings.GOOGLE_API_KEY
+    url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{lng}&key={google_maps_api_key}"
+
+    response = requests.get(url)
+    data = response.json()
+
+    if data["status"] == "OK":
+        return data["results"][0]["formatted_address"]
+    else:
+        return "Address not found"
 
 def report(request):
-    # Calculate total donations and number of donors
     total_donations = Donation.objects.filter(donation_type="monetary").aggregate(total=Sum('amount'))['total'] or 0
     number_of_donors = Donation.objects.values('donor').distinct().count()
 
-    # Donations per donor (monetary)
     donations_per_donor = Donation.objects.filter(donation_type="monetary").values('donor__username').annotate(total_donated=Sum('amount'))
+    in_kind_donations = Donation.objects.filter(donation_type="in_kind").select_related('donor')
 
-    # In-kind donations per donor
-    in_kind_donations_per_donor = Donation.objects.filter(donation_type="in_kind").values('donor__username').annotate(
-        total_items=Sum('item_quantity'),
-        total_donated=Sum('item_quantity')  # Assuming you want to count items as "total donated"
-    )
+    # Convert pickup_location (coordinates) into an address
+    for donation in in_kind_donations:
+        if donation.pickup_location:
+            donation.pickup_address = get_address_from_coordinates(donation.pickup_location)
+        else:
+            donation.pickup_address = "No pickup location provided"
 
     context = {
         'total_donations': total_donations,
         'number_of_donors': number_of_donors,
         'donations_per_donor': donations_per_donor,
-        'in_kind_donations_per_donor': in_kind_donations_per_donor,
+        'in_kind_donations': in_kind_donations,
     }
     return render(request, 'report.html', context)
