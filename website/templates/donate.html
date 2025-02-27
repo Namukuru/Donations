@@ -115,52 +115,81 @@
         const pickupSection = document.querySelector("#pickup-section");
         const pickupChoice = document.querySelector("select[name='pickup_choice']");
         const pickupLocation = document.querySelector("input[name='pickup_location']");
+        const mapContainer = document.createElement("div");
+
+        let map, marker;
+
+        // Create map container and insert after pickup location field
+        mapContainer.id = "map";
+        mapContainer.style = "height: 300px; border-radius: 8px; margin-top: 10px;";
+        mapContainer.classList.add("hidden");
+        pickupLocation.parentNode.insertBefore(mapContainer, pickupLocation.nextSibling);
 
         // Function to toggle fields and handle required attributes
         function toggleFields() {
             if (donationType.value === "monetary") {
-                // Show monetary fields, hide in-kind fields
                 monetaryFields.classList.remove("hidden");
                 inKindFields.classList.add("hidden");
                 pickupSection.classList.add("hidden");
-
-                // Add required to monetary fields
-                document.querySelector("#{{ form.amount.id_for_label }}").setAttribute("required", true);
-                document.querySelector("#{{ form.message.id_for_label }}").setAttribute("required", true);
-
-                // Remove required from in-kind fields
-                document.getElementById("item-name").removeAttribute("required");
-                document.getElementById("item-description").removeAttribute("required");
-                document.getElementById("item-quantity").removeAttribute("required");
+                mapContainer.classList.add("hidden");
             } else {
-                // Show in-kind fields, hide monetary fields
                 monetaryFields.classList.add("hidden");
                 inKindFields.classList.remove("hidden");
                 pickupSection.classList.remove("hidden");
-
-                // Remove required from monetary fields
-                document.querySelector("#{{ form.amount.id_for_label }}").removeAttribute("required");
-                document.querySelector("#{{ form.message.id_for_label }}").removeAttribute("required");
-
-                // Add required to in-kind fields
-                document.getElementById("item-name").setAttribute("required", true);
-                document.getElementById("item-description").setAttribute("required", true);
-                document.getElementById("item-quantity").setAttribute("required", true);
             }
         }
 
         // Handle donation type change
         donationType.addEventListener("change", toggleFields);
 
+        // Function to initialize the map
+        function initializeMap(lat = 0, lng = 0) {
+            if (!map) {
+                map = L.map("map").setView([lat, lng], 15);
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                    attribution: "© OpenStreetMap contributors"
+                }).addTo(map);
+
+                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+                // Update location field when marker is moved
+                marker.on("dragend", function (event) {
+                    const position = marker.getLatLng();
+                    updateAddress(position.lat, position.lng);
+                });
+
+                // Allow user to click on the map to set location
+                map.on("click", function (event) {
+                    marker.setLatLng(event.latlng);
+                    updateAddress(event.latlng.lat, event.latlng.lng);
+                });
+            } else {
+                map.setView([lat, lng], 15);
+                marker.setLatLng([lat, lng]);
+            }
+        }
+
         // Handle pickup choice logic
         pickupChoice.addEventListener("change", function () {
             if (pickupChoice.value === "current") {
-                pickupLocation.disabled = false;  // Enable it before submitting
+                pickupLocation.disabled = false;
                 getCurrentLocation();
+                mapContainer.classList.add("hidden");
             } else {
                 pickupLocation.disabled = false;
                 pickupLocation.value = "";
                 pickupLocation.placeholder = "Enter preferred address";
+                mapContainer.classList.remove("hidden");
+
+                // Get current location to start the map
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => initializeMap(position.coords.latitude, position.coords.longitude),
+                        () => initializeMap(0, 0) // Default to (0,0) if location not available
+                    );
+                } else {
+                    initializeMap(0, 0);
+                }
             }
         });
 
@@ -170,6 +199,7 @@
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         pickupLocation.value = `${position.coords.latitude}, ${position.coords.longitude}`;
+                        initializeMap(position.coords.latitude, position.coords.longitude);
                     },
                     (error) => {
                         alert("Error getting location. Please allow location access.");
@@ -179,6 +209,27 @@
                 alert("Geolocation is not supported by your browser.");
             }
         }
+
+        // Function to update the address field when location changes
+        function updateAddress(lat, lon) {
+            pickupLocation.value = `${lat}, ${lon}`;
+        }
+
+        // Update map marker when user types an address
+        pickupLocation.addEventListener("change", function () {
+            let address = pickupLocation.value;
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        let lat = data[0].lat;
+                        let lon = data[0].lon;
+                        initializeMap(lat, lon);
+                    } else {
+                        alert("Address not found!");
+                    }
+                });
+        });
 
         // Call toggleFields initially to set the correct state
         toggleFields();
@@ -209,7 +260,12 @@
 
         return true;
     }
-  </script>
+</script>
+
+<!-- Leaflet.js CDN -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 </body>
 </html>
 {% endblock %}
