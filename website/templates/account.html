@@ -28,7 +28,7 @@
           <th scope="col"></th>
           <th scope="col">Amount</th>
           <th scope="col">Message</th>
-          <th scope="col">Created At</th>
+          <th scope="col">Donated On</th>
         </tr>
       </thead>
       <tbody>
@@ -62,7 +62,7 @@
           <th scope="col">Description</th>
           <th scope="col">Message</th>
           <th scope="col">Pickup Location</th>
-          <th scope="col">Created At</th>
+          <th scope="col">Donated On</th>
         </tr>
       </thead>
       <tbody>
@@ -73,7 +73,7 @@
             <td>{{ donation.item_quantity }}</td>
             <td>{{ donation.item_description }}</td>
             <td>{{ donation.message}}</td>
-            <td>{{ donation.pickup_location }}</td>
+            <td>{{ donation.pickup_address }}</td>
             <td>{{ donation.created_at }}</td>
           </tr>
         {% endfor %}
