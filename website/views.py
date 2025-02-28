@@ -57,23 +57,18 @@ def register_user(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save() #Saving the user
-            role = form.cleaned_data['role'] #Getting the selected role
+            user = form.save()  # `save()` already creates UserProfile, so we don't need to do it again
             
-            # Create a UserProfile and save the role
-            UserProfile.objects.create(user=user, role=role)
-            
-            # authenticate and log them in
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password1']
-            user = authenticate(username=username, password=password)
+        
             login(request, user)
-            messages.success(
-                request, "You Have Successfully Registered! Welcome!")
+            messages.success(request, "You have successfully registered! Welcome!")
             return redirect('home')
+        else:
+            print(f"DEBUG: Form errors: {form.errors}") 
+            messages.error(request, "Registration failed. Please fix the errors.")
     else:
         form = SignUpForm()
-        return render(request, 'register.html', {'form': form})
+
     return render(request, 'register.html', {'form': form})
 
 def donate(request):
@@ -169,3 +164,7 @@ def report(request):
         'in_kind_donations': in_kind_donations,
     }
     return render(request, 'report.html', context)
+
+def jobs(request):
+
+        return render(request, 'jobs.html')
