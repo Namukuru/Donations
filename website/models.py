@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 # Create your models here.
 ROLE_CHOICES = [
     ('donor', 'Donor'),
+    ('agent', 'Agent'),
     ('recipient', 'Recipient'),
 ]
 class UserProfile(models.Model):
@@ -19,6 +20,7 @@ class Donation(models.Model):
     DONATION_TYPES = [
         ("monetary", "Monetary"),
         ("in_kind", "In-Kind"),
+        ("agent", "Agent"),
     ]
     
     donation_type = models.CharField(max_length=20, choices=DONATION_TYPES)
