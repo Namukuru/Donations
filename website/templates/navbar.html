@@ -43,6 +43,9 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'account' %}">My Account</a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'jobs' %}">Jobs</a>
+            </li>
             {% if user.is_superuser %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'report' %}">Reports</a>
@@ -54,15 +57,18 @@
 
         <div class="d-flex align-items-center ms-auto">
           {% if user.is_authenticated %}
-          <!-- Display User Role -->
-          <span class="navbar-text text-white me-3">
-              Role:
-              {% if user.is_superuser %}
-              Admin
-              {% else %}
-              Donor
-              {% endif %}
-          </span>
+    <!-- Display User Role -->
+    <span class="navbar-text text-white me-3">
+        Role:
+        {% if user.is_superuser %}
+            Admin
+        {% elif user.userprofile %}
+            {{ user.userprofile.role|title }}  <!-- Show the correct role -->
+        {% else %}
+            Donor  <!-- Fallback role if userprofile doesn't exist -->
+        {% endif %}
+    </span>
+
 
           <a href="{% url 'logout' %}" class="btn btn-outline-danger me-3">Logout</a>
           {% else %}
