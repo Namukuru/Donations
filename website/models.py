@@ -20,7 +20,6 @@ class Donation(models.Model):
     DONATION_TYPES = [
         ("monetary", "Monetary"),
         ("in_kind", "In-Kind"),
-        ("agent", "Agent"),
     ]
     
     donation_type = models.CharField(max_length=20, choices=DONATION_TYPES)
@@ -39,3 +38,20 @@ class Donation(models.Model):
 
     def __str__(self):
         return (f"{self.amount}  {self.donor.username}")
+
+class Job(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed')
+    ]
+
+    donor_name = models.CharField(max_length=100)
+    pickup_address = models.TextField()
+    donation_items = models.TextField()
+    assigned_agent = models.ForeignKey(User, on_delete=models.CASCADE, related_name="jobs")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.donor_name} - {self.pickup_address}"

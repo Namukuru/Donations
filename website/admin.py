@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile, Donation
+from .models import UserProfile, Donation, Job
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
@@ -30,6 +30,13 @@ class DonationAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)  # Orders by most recent donations first
     readonly_fields = ('created_at',)  # Prevents editing the timestamp
 
+@admin.register(Job)
+class JobAdmin(admin.ModelAdmin):
+    list_display = ('donor_name', 'pickup_address', 'assigned_agent', 'status', 'created_at')
+    list_filter = ('status', 'assigned_agent')
+    search_fields = ('donor_name', 'pickup_address', 'assigned_agent__username')
+    ordering = ('-created_at',)
+    
 # Unregister the default User admin and register the custom one
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)

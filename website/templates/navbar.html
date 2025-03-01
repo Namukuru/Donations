@@ -43,13 +43,16 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'account' %}">My Account</a>
             </li>
+            {%if user.userprofile.role == "agent" %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'jobs' %}">Jobs</a>
             </li>
+            {% endif %}
             {% if user.is_superuser %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'report' %}">Reports</a>
             </li>
+            <li><a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a></li>
             {% endif %}
             {% endif %}
           </ul>
