@@ -2,12 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import SignUpForm, DonationForm
-from .models import UserProfile, Donation
+from .models import UserProfile, Donation, Job
 from django.db import models
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Sum, Count
 import requests
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 
 def home(request):
     userprofiles = UserProfile.objects.all()
@@ -166,5 +167,19 @@ def report(request):
     return render(request, 'report.html', context)
 
 def jobs(request):
+    agent_jobs = Job.objects.filter(assigned_agent=request.user)
+    return render(request, 'jobs.html',{'jobs':agent_jobs})
 
-        return render(request, 'jobs.html')
+@login_required
+def admin_dashboard(request):
+    if not request.user.is_superuser:  # Ensure only admin can access
+        return redirect("home")  # Redirect non-admin users
+
+    unassigned_jobs = Job.objects.filter(assigned_agent__isnull=True)
+    assigned_jobs = Job.objects.filter(assigned_agent__isnull=False)
+
+    context = {
+        "unassigned_jobs": unassigned_jobs,
+        "assigned_jobs": assigned_jobs,
+    }
+    return render(request, "admin.html", context)
