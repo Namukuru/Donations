@@ -1,0 +1,61 @@
+{% extends "base.html" %} 
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Admin Dashboard</h2>
+
+    <h3>Unassigned Pickup Donations</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Donor Name</th>
+                <th>Pickup Address</th>
+                <th>Donation Items</th>
+                <th>Assign Agent</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in unassigned_jobs %}
+            <tr>
+                <td>{{ job.donor_name }}</td>
+                <td>{{ job.pickup_address }}</td>
+                <td>{{ job.donation_items }}</td>
+                <td>
+                    <form method="POST" action="{% url 'assign_agent' job.id %}">
+                        {% csrf_token %}
+                        <select name="agent_id" class="form-select">
+                            {% for agent in agents %}
+                                <option value="{{ agent.id }}">{{ agent.username }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm mt-2">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Assigned Pickup Donations</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Donor Name</th>
+                <th>Pickup Address</th>
+                <th>Donation Items</th>
+                <th>Assigned Agent</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in assigned_jobs %}
+            <tr>
+                <td>{{ job.donor_name }}</td>
+                <td>{{ job.pickup_address }}</td>
+                <td>{{ job.donation_items }}</td>
+                <td>{{ job.assigned_agent.username }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
