@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 # Create your models here.
 ROLE_CHOICES = [
     ('donor', 'Donor'),
-    ('agent', 'Agent'),
     ('recipient', 'Recipient'),
 ]
 class UserProfile(models.Model):
@@ -35,23 +34,33 @@ class Donation(models.Model):
     item_description = models.TextField(blank=True, null=True)
     # Pickup Details
     pickup_location = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=50, default='pending')
 
     def __str__(self):
         return (f"{self.amount}  {self.donor.username}")
 
+class Agent(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Link to User model
+    city = models.CharField(max_length=100)  # City where agent operates
+    phone = models.CharField(max_length=15)
+
+    def __str__(self):
+        return self.user.username
 class Job(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
-        ('completed', 'Completed')
+        ('completed', 'Completed'),
+        ('canceled', 'Canceled')
     ]
 
     donor_name = models.CharField(max_length=100)
     pickup_address = models.TextField()
     donation_items = models.TextField()
-    assigned_agent = models.ForeignKey(User, on_delete=models.CASCADE, related_name="jobs")
+    assigned_agent = models.ForeignKey(User, on_delete=models.CASCADE,null= True,blank=True, related_name="jobs")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.donor_name} - {self.pickup_address}"
+        return f"{self.donor_name} - {self.pickup_address} ({self.get_status_display()})"
