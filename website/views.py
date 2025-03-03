@@ -2,13 +2,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import SignUpForm, DonationForm
-from .models import UserProfile, Donation, Job
+from .models import UserProfile, Donation, Job, Agent
 from django.db import models
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Sum, Count
 import requests
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 def home(request):
     userprofiles = UserProfile.objects.all()
@@ -169,6 +170,26 @@ def report(request):
 def jobs(request):
     agent_jobs = Job.objects.filter(assigned_agent=request.user)
     return render(request, 'jobs.html',{'jobs':agent_jobs})
+
+def assign_agent(request):
+    # Get available agents
+    agents = User.objects.filter(groups__name='Agents')
+
+    if request.method == "POST":
+        job_id = request.POST.get('job_id')  # Get job_id from form data
+        agent_id = request.POST.get('agent_id')
+
+        job = get_object_or_404(Job, id=job_id)  # Get job from database
+        agent = get_object_or_404(User, id=agent_id)
+
+        # Assign agent to the job
+        job.assigned_agent = agent
+        job.status = 'in_progress'
+        job.save()
+
+        return redirect('jobs')  # Redirect to jobs list
+
+    return render(request, 'assign_agent.html', {'agents': agents})
 
 @login_required
 def admin_dashboard(request):
