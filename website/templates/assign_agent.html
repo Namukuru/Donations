@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Assign Agent to Pickup</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <label for="donation">Select Donation:</label>
+        <select name="donation_id" class="form-control">
+            {% for donation in donations %}
+                <option value="{{ donation.id }}">{{ donation.item_name }} - {{ donation.address }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="agent">Select Agent:</label>
+        <select name="agent_id" class="form-control">
+            {% for agent in agents %}
+                <option value="{{ agent.id }}">{{ agent.user.username }} - {{ agent.city }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-primary mt-3">Assign Agent</button>
+    </form>
+</div>
+{% endblock %}
