@@ -1,11 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 ROLE_CHOICES = [
     ('donor', 'Donor'),
     ('recipient', 'Recipient'),
-]
+    ('agent', 'Agent'),
+    ]
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(blank=True, null=True)
@@ -14,6 +17,14 @@ class UserProfile(models.Model):
      
     def __str__(self):
         return (f"{self.user.username}'s Profile")
+
+class Agent(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Link to User model
+    city = models.CharField(max_length=100)  # City where agent operates
+    phone = models.CharField(max_length=15)
+
+    def __str__(self):
+        return self.user.username
 
 class Donation(models.Model):
     DONATION_TYPES = [
@@ -39,13 +50,7 @@ class Donation(models.Model):
     def __str__(self):
         return (f"{self.amount}  {self.donor.username}")
 
-class Agent(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Link to User model
-    city = models.CharField(max_length=100)  # City where agent operates
-    phone = models.CharField(max_length=15)
 
-    def __str__(self):
-        return self.user.username
 class Job(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
