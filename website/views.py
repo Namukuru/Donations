@@ -1,15 +1,16 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.contrib import messages
 from .forms import SignUpForm, DonationForm
 from .models import UserProfile, Donation, Job, Agent
 from django.db import models
-from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Sum, Count
 import requests
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+
 
 def home(request):
     userprofiles = UserProfile.objects.all()
@@ -59,9 +60,9 @@ def register_user(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()  # `save()` already creates UserProfile, so we don't need to do it again
-            
-        
+            user = form.save(commit=False)
+            user.save()   
+              
             login(request, user)
             messages.success(request, "You have successfully registered! Welcome!")
             return redirect('home')
@@ -168,28 +169,34 @@ def report(request):
     return render(request, 'report.html', context)
 
 def jobs(request):
+    """View for displaying assigned jobs"""
     agent_jobs = Job.objects.filter(assigned_agent=request.user)
-    return render(request, 'jobs.html',{'jobs':agent_jobs})
+
+    for job in agent_jobs:
+        if job.pickup_address:  # Convert coordinates to an address if available
+            job.pickup_address = get_address_from_coordinates(job.pickup_address)
+    
+    return render(request, 'jobs.html', {'jobs': agent_jobs})
 
 def assign_agent(request):
-    # Get available agents
-    agents = User.objects.filter(groups__name='Agents')
+    agents = Agent.objects.filter(user__userprofile__role='agent')
+    donations = Donation.objects.filter(donation_type='in_kind',status='pending')
 
     if request.method == "POST":
         job_id = request.POST.get('job_id')  # Get job_id from form data
         agent_id = request.POST.get('agent_id')
 
         job = get_object_or_404(Job, id=job_id)  # Get job from database
-        agent = get_object_or_404(User, id=agent_id)
+        agent = get_object_or_404(Agent, id=agent_id)
 
         # Assign agent to the job
-        job.assigned_agent = agent
+        job.assigned_agent = agent.user
         job.status = 'in_progress'
         job.save()
 
         return redirect('jobs')  # Redirect to jobs list
 
-    return render(request, 'assign_agent.html', {'agents': agents})
+    return render(request, 'assign_agent.html', {'agents': agents, 'donations': donations})
 
 @login_required
 def admin_dashboard(request):
