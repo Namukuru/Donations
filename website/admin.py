@@ -39,4 +39,5 @@ class JobAdmin(admin.ModelAdmin):
     
 # Unregister the default User admin and register the custom one
 admin.site.unregister(User)
+admin.site.register(Agent)
 admin.site.register(User, CustomUserAdmin)
