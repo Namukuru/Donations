@@ -48,8 +48,20 @@ class Donation(models.Model):
     status = models.CharField(max_length=50, default='pending')
 
     def __str__(self):
-        return (f"{self.amount}  {self.donor.username}")
+        return (f"{self.amount}  {self.donor.username if self.donor else 'Anonymous'}")
+    
+    def save(self, *args, **kwargs):
+        # Check if it's an in-kind donation and has a pickup location
+        is_new = self.pk is None  # Check if this is a new donation
+        super().save(*args, **kwargs)  # Save the donation first
 
+        if is_new and self.donation_type == "in_kind" and self.pickup_location:
+            Job.objects.create(
+                donor_name=self.donor.username if self.donor else "Anonymous",
+                pickup_address=self.pickup_location,
+                donation_items=f"{self.item_quantity or 1}x {self.item_name}",
+                status="pending"
+            )
 
 class Job(models.Model):
     STATUS_CHOICES = [
