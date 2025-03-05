@@ -5,9 +5,10 @@
     <h2>Admin Dashboard</h2>
 
     <h3>Unassigned Pickup Donations</h3>
-    <table class="table table-bordered">
-        <thead>
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
             <tr>
+                <th></th>
                 <th>Donor Name</th>
                 <th>Pickup Address</th>
                 <th>Donation Items</th>
@@ -17,42 +18,49 @@
         <tbody>
             {% for job in unassigned_jobs %}
             <tr>
+                <td>{{forloop.counter}}</td>
                 <td>{{ job.donor_name }}</td>
-                <td>{{ job.pickup_address }}</td>
+                <td>{{ job.formatted_address }}</td>
                 <td>{{ job.donation_items }}</td>
                 <td>
-                    <form method="POST" action="{% url 'assign_agent' job.id %}">
+                    <form method="POST" action="{% url 'assign_agent' %}">
                         {% csrf_token %}
                         <select name="agent_id" class="form-select">
                             {% for agent in agents %}
-                                <option value="{{ agent.id }}">{{ agent.username }}</option>
+                                <option value="{{ agent.id }}">{{ agent.user.username }}</option>
                             {% endfor %}
                         </select>
                         <button type="submit" class="btn btn-primary btn-sm mt-2">Assign</button>
                     </form>
                 </td>
+
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
     <h3>Assigned Pickup Donations</h3>
-    <table class="table table-bordered">
-        <thead>
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
             <tr>
+                <th></th>
                 <th>Donor Name</th>
                 <th>Pickup Address</th>
                 <th>Donation Items</th>
                 <th>Assigned Agent</th>
+                <th>Status</th>                
             </tr>
         </thead>
         <tbody>
             {% for job in assigned_jobs %}
             <tr>
+                <td>{{forloop.counter}}</td>
                 <td>{{ job.donor_name }}</td>
-                <td>{{ job.pickup_address }}</td>
+                <td>{{ job.formatted_address }}</td>
                 <td>{{ job.donation_items }}</td>
                 <td>{{ job.assigned_agent.username }}</td>
+                <td>{{job.status}}</td>
+                <table></table>
             </tr>
             {% endfor %}
         </tbody>
