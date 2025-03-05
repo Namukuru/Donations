@@ -200,14 +200,36 @@ def assign_agent(request):
 
 @login_required
 def admin_dashboard(request):
-    if not request.user.is_superuser:  # Ensure only admin can access
-        return redirect("home")  # Redirect non-admin users
-
     unassigned_jobs = Job.objects.filter(assigned_agent__isnull=True)
     assigned_jobs = Job.objects.filter(assigned_agent__isnull=False)
 
+    agents = User.objects.filter(groups__name='Agents')
+    # Pass both original and formatted addresses to the template
+    unassigned_jobs_data = []
+    assigned_jobs_data = []
+
+    for job in unassigned_jobs:
+        unassigned_jobs_data.append({
+            "id": job.id,
+            "donor_name": job.donor_name,
+            "pickup_address": job.pickup_address,  # Original coordinates
+            "formatted_address": get_address_from_coordinates(job.pickup_address),  # Converted address
+            "donation_items": job.donation_items,
+        })
+
+    for job in assigned_jobs:
+        assigned_jobs_data.append({
+            "id": job.id,
+            "donor_name": job.donor_name,
+            "pickup_address": job.pickup_address,  # Original coordinates
+            "formatted_address": get_address_from_coordinates(job.pickup_address),  # Converted address
+            "donation_items": job.donation_items,
+            "assigned_agent": job.assigned_agent,
+            "status": job.status,
+        })
+
     context = {
-        "unassigned_jobs": unassigned_jobs,
-        "assigned_jobs": assigned_jobs,
+        "unassigned_jobs": unassigned_jobs_data,
+        "assigned_jobs": assigned_jobs_data,
     }
     return render(request, "admin.html", context)
