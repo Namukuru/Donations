@@ -203,7 +203,8 @@ def admin_dashboard(request):
     unassigned_jobs = Job.objects.filter(assigned_agent__isnull=True)
     assigned_jobs = Job.objects.filter(assigned_agent__isnull=False)
 
-    agents = User.objects.filter(groups__name='Agents')
+    agents = Agent.objects.all()
+    print("Agents in set: ",agents)
     # Pass both original and formatted addresses to the template
     unassigned_jobs_data = []
     assigned_jobs_data = []
@@ -231,5 +232,6 @@ def admin_dashboard(request):
     context = {
         "unassigned_jobs": unassigned_jobs_data,
         "assigned_jobs": assigned_jobs_data,
+        "agents": agents,
     }
     return render(request, "admin.html", context)
