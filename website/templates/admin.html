@@ -25,6 +25,7 @@
                 <td>
                     <form method="POST" action="{% url 'assign_agent' %}">
                         {% csrf_token %}
+                        <input type="hidden" name="job_id" value="{{ job.id }}">
                         <select name="agent_id" class="form-select">
                             {% for agent in agents %}
                                 <option value="{{ agent.id }}">{{ agent.user.username }}</option>

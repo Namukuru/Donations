@@ -191,10 +191,11 @@ def assign_agent(request):
 
         # Assign agent to the job
         job.assigned_agent = agent.user
-        job.status = 'in_progress'
+        job.status = 'pending'
         job.save()
 
-        return redirect('jobs')  # Redirect to jobs list
+        messages.success(request, f"Agent {agent.user.username} assigned to job {job_id}")
+        return redirect("admin_dashboard")
 
     return render(request, 'assign_agent.html', {'agents': agents, 'donations': donations})
 
@@ -202,9 +203,8 @@ def assign_agent(request):
 def admin_dashboard(request):
     unassigned_jobs = Job.objects.filter(assigned_agent__isnull=True)
     assigned_jobs = Job.objects.filter(assigned_agent__isnull=False)
-
     agents = Agent.objects.all()
-    print("Agents in set: ",agents)
+    
     # Pass both original and formatted addresses to the template
     unassigned_jobs_data = []
     assigned_jobs_data = []

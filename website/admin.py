@@ -32,7 +32,7 @@ class DonationAdmin(admin.ModelAdmin):
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
-    list_display = ('donor_name', 'pickup_address', 'assigned_agent', 'status', 'created_at')
+    list_display = ('donor_name', 'pickup_address','donation_items', 'assigned_agent', 'status', 'created_at')
     list_filter = ('status', 'assigned_agent')
     search_fields = ('donor_name', 'pickup_address', 'assigned_agent__username')
     ordering = ('-created_at',)

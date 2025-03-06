@@ -80,4 +80,4 @@ class Job(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.donor_name} - {self.pickup_address} ({self.get_status_display()})"
+        return f"{self.donor_name} - {self.donation_items} - {self.pickup_address} ({self.get_status_display()})"
