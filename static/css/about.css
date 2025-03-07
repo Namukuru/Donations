@@ -1,0 +1,36 @@
+/* Custom styles for the floating button */
+.float {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    background-color: #f53636; /* Red color */
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    box-shadow: 2px 2px 3px #999;
+    border-radius: 8px;
+    width: 150px; /* Increased width to hold all the words */
+    height: 50px;
+    line-height: 50px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050; /* Ensure it stays on top of other elements */
+}
+
+.float:hover {
+    background-color: #e04d13; /* Darker red color */
+    color: #fff;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+.float:hover {
+    animation: bounce 1s;
+}
