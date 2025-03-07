@@ -94,7 +94,7 @@ def donate(request):
 
             donation.save()  # Save the donation to the database
             messages.success(request, "You have successfully made a donation")
-            return redirect('home')
+            return redirect('account')
     else:
         form = DonationForm()
     return render(request, 'donate.html', {'form': form})
@@ -185,6 +185,8 @@ def assign_agent(request):
     if request.method == "POST":
         job_id = request.POST.get('job_id')  # Get job_id from form data
         agent_id = request.POST.get('agent_id')
+        
+        print(f"Assigning job {job_id} to agent {agent_id}")  # Debugging statement
 
         job = get_object_or_404(Job, id=job_id)  # Get job from database
         agent = get_object_or_404(Agent, id=agent_id)
@@ -197,7 +199,18 @@ def assign_agent(request):
         messages.success(request, f"Agent {agent.user.username} assigned to job {job_id}")
         return redirect("admin_dashboard")
 
-    return render(request, 'assign_agent.html', {'agents': agents, 'donations': donations})
+def unassign_agent(request):
+    if request.method == "POST":
+        job_id = request.POST.get('job_id')
+        
+        job = get_object_or_404(Job, id=job_id)
+
+        job.assigned_agent = None
+        job.status = 'unassigned'
+        job.save()
+
+        messages.success(request, f"Agent unassigned from job {job_id}")
+        return redirect("admin_dashboard")
 
 @login_required
 def admin_dashboard(request):
