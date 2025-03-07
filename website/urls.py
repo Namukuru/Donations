@@ -12,5 +12,6 @@ urlpatterns = [
     path('report/', views.report, name='report'),
     path('jobs/', views.jobs, name='jobs'),
     path("assign-agent/", views.assign_agent, name="assign_agent"),
+    path('unassign_agent/', views.unassign_agent, name='unassign_agent'),
     path('admin-dashboard/', views.admin_dashboard, name="admin_dashboard"),
 ]

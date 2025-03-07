@@ -3,9 +3,9 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Admin Dashboard</h2>
-
+<br/>
     <h3>Unassigned Pickup Donations</h3>
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped table-hover">
         <thead class="table-dark">
             <tr>
                 <th></th>
@@ -13,6 +13,7 @@
                 <th>Pickup Address</th>
                 <th>Donation Items</th>
                 <th>Assign Agent</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -31,17 +32,18 @@
                                 <option value="{{ agent.id }}">{{ agent.user.username }}</option>
                             {% endfor %}
                         </select>
+                </td>
+                <td>
                         <button type="submit" class="btn btn-primary btn-sm mt-2">Assign</button>
                     </form>
                 </td>
-
             </tr>
             {% endfor %}
         </tbody>
     </table>
-
+<br/>
     <h3>Assigned Pickup Donations</h3>
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped table-hover">
         <thead class="table-dark">
             <tr>
                 <th></th>
@@ -49,7 +51,8 @@
                 <th>Pickup Address</th>
                 <th>Donation Items</th>
                 <th>Assigned Agent</th>
-                <th>Status</th>                
+                <th>Status</th> 
+                <th>Actions</th>               
             </tr>
         </thead>
         <tbody>
@@ -60,8 +63,14 @@
                 <td>{{ job.formatted_address }}</td>
                 <td>{{ job.donation_items }}</td>
                 <td>{{ job.assigned_agent.username }}</td>
-                <td>{{job.status}}</td>
-                <table></table>
+                <td>{{job.status|capfirst}}</td>
+                <td>
+                    <form method="POST" action="{% url 'unassign_agent' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="job_id" value="{{ job.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Unassign</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
