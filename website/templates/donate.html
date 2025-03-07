@@ -1,83 +1,46 @@
 {% extends 'base.html' %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Donate</title>
-  <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-    }
-    .form-container {
-        max-width: 400px;
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        margin: auto;
-    }
-    label {
-        display: block;
-        margin-top: 10px;
-        font-weight: bold;
-    }
-    input, select, textarea {
-        width: 100%;
-        padding: 8px;
-        margin-top: 5px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-    .donation-type {
-        margin-bottom: 20px;
-    }
-    .hidden {
-        display: none;
-    }
-  </style>
-</head>
-<body>
-  <div class="col-md-6 offset-md-3 form-container">
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/donate.css' %}">
+
+<div class="col-md-6 offset-md-3 form-container">
     <h1>Make a Donation</h1>
     <form method="post" action="{% url 'donate' %}" onsubmit="return validateForm()">
-      {% csrf_token %}
+        {% csrf_token %}
 
-      {% if form.errors %}
+        {% if form.errors %}
         <div class="alert alert-danger">
-          <strong>Error:</strong> Please correct the errors below.
-          <ul>
+            <strong>Error:</strong> Please correct the errors below.
+            <ul>
             {% for field in form %}
-              {% for error in field.errors %}
+                {% for error in field.errors %}
                 <li>{{ field.label }}: {{ error }}</li>
-              {% endfor %}
+                {% endfor %}
             {% endfor %}
             {% for error in form.non_field_errors %}
-              <li>{{ error }}</li>
+                <li>{{ error }}</li>
             {% endfor %}
-          </ul>
+            </ul>
         </div>
-      {% endif %}
+        {% endif %}
 
-      <!-- Donation Type Selection -->
-      <label for="donation-type">Donation Type:</label>
-      <select id="donation-type" name="donation_type" class="donation-type">
+        <!-- Donation Type Selection -->
+        <label for="donation-type">Donation Type:</label>
+        <select id="donation-type" name="donation_type" class="donation-type">
         <option value="monetary">Monetary Donation</option>
         <option value="in_kind">In-Kind Donation</option>
-      </select>
+        </select>
 
-      <!-- Monetary Donation Fields -->
-      <div id="monetary-fields">
+        <!-- Monetary Donation Fields -->
+        <div id="monetary-fields">
         <label for="{{ form.amount.id_for_label }}">Amount:</label>
         {{ form.amount }}  <!-- Use Django's form field rendering -->
         <label for="{{ form.message.id_for_label }}">Message:</label>
         {{ form.message }}  <!-- Use Django's form field rendering -->
-      </div>
+        </div>
 
-      <!-- In-Kind Donation Fields -->
-      <div id="in-kind-fields" class="hidden">
+        <!-- In-Kind Donation Fields -->
+        <div id="in-kind-fields" class="hidden">
         <label for="item-name">Item Name:</label>
         <input type="text" id="item-name" name="item_name" placeholder="Enter item name">
 
@@ -86,186 +49,30 @@
 
         <label for="item-quantity">Quantity:</label>
         <input type="number" id="item-quantity" name="item_quantity" placeholder="Enter quantity">
-      </div>
+        </div>
 
-      <!-- Pickup Section -->
-      <div id="pickup-section" class="hidden">
+        <!-- Pickup Section -->
+        <div id="pickup-section" class="hidden">
         <label for="{{ form.pickup_choice.id_for_label }}">Pickup Choice:</label>
         <select id="{{ form.pickup_choice.id_for_label }}" name="pickup_choice">
-          <option value="current">Use Current Location</option>
-          <option value="other">Enter Address</option>
+            <option value="current">Use Current Location</option>
+            <option value="other">Enter Address</option>
         </select>
 
         <label for="pickup-location">Pickup Location:</label>
         <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address" disabled>
-      </div>
+        </div>
 
-      <br>
-      <br>
-      <button type="submit" class="btn btn-primary">Donate</button>
-      <a href="{% url 'account' %}" class="btn btn-secondary">Back</a>
+        <br>
+        <br>
+        <button type="submit" class="btn btn-primary">Donate</button>
+        <a href="{% url 'account' %}" class="btn btn-secondary">Back</a>
     </form>
-  </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const donationType = document.querySelector("#donation-type");
-        const monetaryFields = document.querySelector("#monetary-fields");
-        const inKindFields = document.querySelector("#in-kind-fields");
-        const pickupSection = document.querySelector("#pickup-section");
-        const pickupChoice = document.querySelector("select[name='pickup_choice']");
-        const pickupLocation = document.querySelector("input[name='pickup_location']");
-        const mapContainer = document.createElement("div");
-
-        let map, marker;
-
-        // Create map container and insert after pickup location field
-        mapContainer.id = "map";
-        mapContainer.style = "height: 300px; border-radius: 8px; margin-top: 10px;";
-        mapContainer.classList.add("hidden");
-        pickupLocation.parentNode.insertBefore(mapContainer, pickupLocation.nextSibling);
-
-        // Function to toggle fields and handle required attributes
-        function toggleFields() {
-            if (donationType.value === "monetary") {
-                monetaryFields.classList.remove("hidden");
-                inKindFields.classList.add("hidden");
-                pickupSection.classList.add("hidden");
-                mapContainer.classList.add("hidden");
-            } else {
-                monetaryFields.classList.add("hidden");
-                inKindFields.classList.remove("hidden");
-                pickupSection.classList.remove("hidden");
-            }
-        }
-
-        // Handle donation type change
-        donationType.addEventListener("change", toggleFields);
-
-        // Function to initialize the map
-        function initializeMap(lat = 0, lng = 0) {
-            if (!map) {
-                map = L.map("map").setView([lat, lng], 15);
-                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                    attribution: "© OpenStreetMap contributors"
-                }).addTo(map);
-
-                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-
-                // Update location field when marker is moved
-                marker.on("dragend", function (event) {
-                    const position = marker.getLatLng();
-                    updateAddress(position.lat, position.lng);
-                });
-
-                // Allow user to click on the map to set location
-                map.on("click", function (event) {
-                    marker.setLatLng(event.latlng);
-                    updateAddress(event.latlng.lat, event.latlng.lng);
-                });
-            } else {
-                map.setView([lat, lng], 15);
-                marker.setLatLng([lat, lng]);
-            }
-        }
-
-        // Handle pickup choice logic
-        pickupChoice.addEventListener("change", function () {
-            if (pickupChoice.value === "current") {
-                pickupLocation.disabled = false;
-                getCurrentLocation();
-                mapContainer.classList.add("hidden");
-            } else {
-                pickupLocation.disabled = false;
-                pickupLocation.value = "";
-                pickupLocation.placeholder = "Enter preferred address";
-                mapContainer.classList.remove("hidden");
-
-                // Get current location to start the map
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => initializeMap(position.coords.latitude, position.coords.longitude),
-                        () => initializeMap(0, 0) // Default to (0,0) if location not available
-                    );
-                } else {
-                    initializeMap(0, 0);
-                }
-            }
-        });
-
-        // Function to get current location
-        function getCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        pickupLocation.value = `${position.coords.latitude}, ${position.coords.longitude}`;
-                        initializeMap(position.coords.latitude, position.coords.longitude);
-                    },
-                    (error) => {
-                        alert("Error getting location. Please allow location access.");
-                    }
-                );
-            } else {
-                alert("Geolocation is not supported by your browser.");
-            }
-        }
-
-        // Function to update the address field when location changes
-        function updateAddress(lat, lon) {
-            pickupLocation.value = `${lat}, ${lon}`;
-        }
-
-        // Update map marker when user types an address
-        pickupLocation.addEventListener("change", function () {
-            let address = pickupLocation.value;
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        let lat = data[0].lat;
-                        let lon = data[0].lon;
-                        initializeMap(lat, lon);
-                    } else {
-                        alert("Address not found!");
-                    }
-                });
-        });
-
-        // Call toggleFields initially to set the correct state
-        toggleFields();
-    });
-
-    // Custom form validation
-    function validateForm() {
-        const donationType = document.querySelector("#donation-type").value;
-
-        if (donationType === "monetary") {
-            const amount = document.querySelector("#{{ form.amount.id_for_label }}").value;
-            const message = document.querySelector("#{{ form.message.id_for_label }}").value;
-
-            if (!amount || !message) {
-                alert("Please fill out all required fields for monetary donations.");
-                return false;
-            }
-        } else {
-            const itemName = document.getElementById("item-name").value;
-            const itemDescription = document.getElementById("item-description").value;
-            const itemQuantity = document.getElementById("item-quantity").value;
-
-            if (!itemName || !itemDescription || !itemQuantity) {
-                alert("Please fill out all required fields for in-kind donations.");
-                return false;
-            }
-        }
-
-        return true;
-    }
-</script>
+</div>
+<script src="{% static 'js/donate.js' %}"></script>
 
 <!-- Leaflet.js CDN -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-</body>
-</html>
 {% endblock %}
