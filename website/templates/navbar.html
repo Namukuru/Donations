@@ -73,10 +73,10 @@
     </span>
 
 
-          <a href="{% url 'logout' %}" class="btn btn-outline-danger me-3">Logout</a>
+          <a href="{% url 'logout_user' %}" class="btn btn-outline-danger me-3">Logout</a>
           {% else %}
           <a href="{% url 'register' %}" class="btn btn-outline-success me-3">Register</a>
-          <a href="{% url 'loginUser' %}" class="btn btn-outline-primary">LogIn</a>
+          <a href="{% url 'login_user' %}" class="btn btn-outline-primary">LogIn</a>
           {% endif %}
         </div>
       </div>
