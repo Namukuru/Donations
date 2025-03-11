@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/donate.css' %}">
+
+<div class="col-md-6 offset-md-3 form-container">
+    <h1>Make a Donation</h1>
+    <form method="post" action="{% url 'donate' %}" onsubmit="return validateForm()">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>Error:</strong> Please correct the errors below.
+            <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                <li>{{ field.label }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Donation Type Selection -->
+        <label for="donation-type">Donation Type:</label>
+        <select id="donation-type" name="donation_type" class="donation-type">
+        <option value="monetary">Monetary Donation</option>
+        <option value="in_kind">In-Kind Donation</option>
+        </select>
+
+        <!-- Monetary Donation Fields -->
+        <div id="monetary-fields">
+        <label for="{{ form.amount.id_for_label }}">Amount:</label>
+        {{ form.amount }}  <!-- Use Django's form field rendering -->
+        <label for="{{ form.message.id_for_label }}">Message:</label>
+        {{ form.message }}  <!-- Use Django's form field rendering -->
+        </div>
+
+        <!-- In-Kind Donation Fields -->
+        <div id="in-kind-fields" class="hidden">
+        <label for="item-name">Item Name:</label>
+        <input type="text" id="item-name" name="item_name" placeholder="Enter item name">
+
+        <label for="item-description">Item Description:</label>
+        <textarea id="item-description" name="item_description" placeholder="Describe the item"></textarea>
+
+        <label for="item-quantity">Quantity:</label>
+        <input type="number" id="item-quantity" name="item_quantity" placeholder="Enter quantity">
+        </div>
+
+        <!-- Pickup Section -->
+        <div id="pickup-section" class="hidden">
+        <label for="{{ form.pickup_choice.id_for_label }}">Pickup Choice:</label>
+        <select id="{{ form.pickup_choice.id_for_label }}" name="pickup_choice">
+            <option value="current">Use Current Location</option>
+            <option value="other">Enter Address</option>
+        </select>
+
+        <label for="pickup-location">Pickup Location:</label>
+        <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address" disabled>
+        </div>
+
+        <br>
+        <br>
+        <button type="submit" class="btn btn-primary">Donate</button>
+        <a href="{% url 'account' %}" class="btn btn-secondary">Back</a>
+    </form>
+</div>
+<script src="{% static 'js/donate.js' %}"></script>
+
+<!-- Leaflet.js CDN -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+{% endblock %}

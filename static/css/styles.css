@@ -1,0 +1,79 @@
+/*The whole navebar template*/
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    font-size: 20px;  
+    font-family: "Lora", serif; 
+    letter-spacing: 1px;
+    background-color: #004080;
+  }
+  
+  /*The CompassionNet Title*/
+  .navbar-brand {
+    font-size: 24px; 
+    font-weight: bold; 
+    letter-spacing: 2px; 
+  }
+  
+  /*Whole body in base template*/
+  body {
+    font-family: "Lora", serif;
+    font-size: 16px; 
+    line-height: 1.6; 
+    color: #333;
+  }
+  
+  /*Styling the alert messages*/
+  .alert{
+    font-size: 15px;
+    
+  }
+  
+  .form-container {
+    max-width: 400px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    margin: auto;
+  }
+  label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  .donation-type {
+    margin-bottom: 20px;
+  }
+  .hidden {
+    display: none;
+  }
+  .project-card {
+    padding: 20px;
+    color: white;
+  }
+  /*size of cards*/
+  .project-card {
+    padding: 20px;
+    text-align: center;
+    min-height: 150px; /* Ensures equal height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bg-custom-blue {
+    background-color: #4a90e2; /* Custom blue color */
+  }
+  
+  
