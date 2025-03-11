@@ -77,8 +77,8 @@
             <td>{{ donation.pickup_address }}</td>
             <td>{{ donation.created_at }}</td>
             <td>
-              {% if donation.agent %}
-                {{ donation.agent.username }}
+              {% if donation.assigned_agent %}
+                {{ donation.assigned_agent.username }}
               {% else %}
                 Not Assigned
               {% endif %}
