@@ -1,12 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db.models import Sum, Count
-from .forms import SignUpForm, DonationForm
-from .models import UserProfile, Donation, Job, Agent
-from django.db import models
+from django.db.models import Sum
+from .forms import  DonationForm
+from .models import UserProfile, Donation, Agent
 from .utils import get_address_from_coordinates 
 from django.core.cache import cache
 
@@ -55,7 +53,7 @@ def donate(request):
     return render(request, 'donate.html', {'form': form})
 
 def donation_success(request):
-    return render(request, 'donate.html',{'form': form})
+    return render(request, 'donate.html')
 
 def about(request):
     return render(request, 'about.html', {})
@@ -81,6 +79,7 @@ def account(request):
         'monetary_donations': monetary_donations,
         'in_kind_donations': in_kind_donations,
         'total_donations': total_donations,
+        'donations': donations,
     }
     return render(request, 'account.html', context)
     
@@ -125,82 +124,93 @@ def report(request):
     return render(request, 'report.html', context)
 
 def jobs(request):
-    """View for displaying assigned jobs"""
-    agent_jobs = Job.objects.filter(assigned_agent=request.user)
+    """ Show jobs assigned to the logged-in agent """
+    if not request.user.is_authenticated:
+        return render(request, "error.html", {"message": "You must be logged in."})
 
-    for job in agent_jobs:
-        if job.pickup_address:  # Convert coordinates to an address if available
-            job.pickup_address = get_address_from_coordinates(job.pickup_address)
-    
-    return render(request, 'jobs.html', {'jobs': agent_jobs})
+    # Retrieve assigned donations based on User, not Agent
+    assigned_donations = Donation.objects.filter(assigned_agent=request.user)
+
+    return render(request, "jobs.html", {"assigned_donations": assigned_donations})
 
 def assign_agent(request):
-    agents = Agent.objects.filter(user__userprofile__role='agent')
-    donations = Donation.objects.filter(donation_type='in_kind',status='pending')
-
     if request.method == "POST":
-        job_id = request.POST.get('job_id')  # Get job_id from form data
+        donation_id = request.POST.get('job_id')
         agent_id = request.POST.get('agent_id')
-        
-        print(f"Assigning job {job_id} to agent {agent_id}")  # Debugging statement
 
-        job = get_object_or_404(Job, id=job_id)  # Get job from database
-        agent = get_object_or_404(Agent, id=agent_id)
+        # Debugging: Print values to check if they're being received correctly
+        print(f"Donation ID: {donation_id}, Agent ID: {agent_id}")
 
-        # Assign agent to the job
-        job.assigned_agent = agent.user
-        job.status = 'pending'
-        job.save()
+        # Check if donation_id is valid
+        if not donation_id:
+            messages.error(request, "Invalid donation ID.")
+            return redirect("admin_dashboard")
 
-        messages.success(request, f"Agent {agent.user.username} assigned to job {job_id}")
+        # Fetch donation object
+        donation = get_object_or_404(Donation, id=donation_id)
+
+        # Fetch agent object
+        if agent_id:
+            agent = get_object_or_404(Agent, id=agent_id)
+            donation.assigned_agent = agent.user  # Assign agent's user
+            donation.status = "assigned"
+        else:
+            donation.assigned_agent = None
+            donation.status = "unassigned"
+
+        donation.save()
+        messages.success(request, f"Donation {donation.id} assigned successfully.")
         return redirect("admin_dashboard")
+
+    return redirect("admin_dashboard")
 
 def unassign_agent(request):
     if request.method == "POST":
-        job_id = request.POST.get('job_id')
+        donation_id = request.POST.get('donation_id')
         
-        job = get_object_or_404(Job, id=job_id)
+        donation = get_object_or_404(Donation, id=donation_id)
 
-        job.assigned_agent = None
-        job.status = 'unassigned'
-        job.save()
+        donation.assigned_agent = None
+        donation.status = 'pending'  # Change status back to pending
+        donation.save(update_fields=['assigned_agent', 'status'])
 
-        messages.success(request, f"Agent unassigned from job {job_id}")
+        messages.success(request, f"Agent unassigned from donation {donation_id}")
         return redirect("admin_dashboard")
 
 @login_required
 def admin_dashboard(request):
-    unassigned_jobs = Job.objects.filter(assigned_agent__isnull=True)
-    assigned_jobs = Job.objects.filter(assigned_agent__isnull=False)
-    agents = Agent.objects.all()
-    
-    # Pass both original and formatted addresses to the template
-    unassigned_jobs_data = []
-    assigned_jobs_data = []
+    # Get donations that are in-kind and unassigned
+    unassigned_donations = Donation.objects.filter(donation_type="in_kind", assigned_agent__isnull=True)
+    assigned_donations = Donation.objects.filter(donation_type="in_kind", assigned_agent__isnull=False)
 
-    for job in unassigned_jobs:
-        unassigned_jobs_data.append({
-            "id": job.id,
-            "donor_name": job.donor_name,
-            "pickup_address": job.pickup_address,  # Original coordinates
-            "formatted_address": get_address_from_coordinates(job.pickup_address),  # Converted address
-            "donation_items": job.donation_items,
-        })
+    # Convert donations into structured data for the template
+    unassigned_donations_data = [
+        {
+            "id": donation.id,
+            "donor_name": donation.donor.username if donation.donor else "Anonymous",
+            "pickup_address": donation.pickup_location,  # Original address (assumed not to be coordinates)
+            "formatted_address": get_address_from_coordinates(donation.pickup_location) if donation.pickup_location else "N/A",
+            "donation_items": f"{donation.item_quantity or 1}x {donation.item_name}",
+        }
+        for donation in unassigned_donations
+    ]
 
-    for job in assigned_jobs:
-        assigned_jobs_data.append({
-            "id": job.id,
-            "donor_name": job.donor_name,
-            "pickup_address": job.pickup_address,  # Original coordinates
-            "formatted_address": get_address_from_coordinates(job.pickup_address),  # Converted address
-            "donation_items": job.donation_items,
-            "assigned_agent": job.assigned_agent,
-            "status": job.status,
-        })
+    assigned_donations_data = [
+        {
+            "id": donation.id,
+            "donor_name": donation.donor.username if donation.donor else "Anonymous",
+            "pickup_address": donation.pickup_location,
+            "formatted_address": get_address_from_coordinates(donation.pickup_location) if donation.pickup_location else "N/A",
+            "donation_items": f"{donation.item_quantity or 1}x {donation.item_name}",
+            "assigned_agent": donation.assigned_agent.username if donation.assigned_agent else "Unassigned",
+            "status": donation.status,
+        }
+        for donation in assigned_donations
+    ]
 
     context = {
-        "unassigned_jobs": unassigned_jobs_data,
-        "assigned_jobs": assigned_jobs_data,
-        "agents": agents,
+        "unassigned_donations": unassigned_donations_data,
+        "assigned_donations": assigned_donations_data,
+        "agents": Agent.objects.all(),
     }
     return render(request, "admin.html", context)
