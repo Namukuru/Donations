@@ -17,7 +17,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for job in unassigned_jobs %}
+            {% for job in unassigned_donations %}
             <tr>
                 <td>{{forloop.counter}}</td>
                 <td>{{ job.donor_name }}</td>
@@ -56,18 +56,18 @@
             </tr>
         </thead>
         <tbody>
-            {% for job in assigned_jobs %}
+            {% for job in assigned_donations%}
             <tr>
                 <td>{{forloop.counter}}</td>
                 <td>{{ job.donor_name }}</td>
                 <td>{{ job.formatted_address }}</td>
                 <td>{{ job.donation_items }}</td>
-                <td>{{ job.assigned_agent.username }}</td>
+                <td>{{ job.assigned_agent }}</td>
                 <td>{{job.status|capfirst}}</td>
                 <td>
                     <form method="POST" action="{% url 'unassign_agent' %}">
                         {% csrf_token %}
-                        <input type="hidden" name="job_id" value="{{ job.id }}">
+                        <input type="hidden" name="donation_id" value="{{ job.id }}">
                         <button type="submit" class="btn btn-danger btn-sm">Unassign</button>
                     </form>
                 </td>
