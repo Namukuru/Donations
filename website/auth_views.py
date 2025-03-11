@@ -12,10 +12,10 @@ def login_user(request):
         if user is not None:
             login(request, user)
             messages.success(request, "Log in successful!")
-            return redirect('loginUser')
+            return redirect('login_user')
         else:
             messages.success(request, "An error occurred. Please try again.")
-            return redirect('loginUser')
+            return redirect('login_user')
     else:
         return render(request, 'loginUser.html', {})
 

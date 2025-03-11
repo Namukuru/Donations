@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django import forms
 from .models import Donation
 from .models import UserProfile
+
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(label="Email", widget=forms.TextInput(
         attrs={'class': 'form-control', 'placeholder': 'Email Address'}))
