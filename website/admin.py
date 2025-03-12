@@ -30,7 +30,12 @@ class DonationAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)  # Orders by most recent donations first
     readonly_fields = ('created_at',)  # Prevents editing the timestamp
     
+@admin.register(Agent)
+class AgentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'location', 'phone')  # Fields to display in the list view
+    search_fields = ('user__username', 'location', 'phone')  # Enable search functionality
+    list_filter = ('location',)  # Add filtering by location
+    
 # Unregister the default User admin and register the custom one
 admin.site.unregister(User)
-admin.site.register(Agent)
 admin.site.register(User, CustomUserAdmin)

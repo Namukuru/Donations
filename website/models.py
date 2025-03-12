@@ -12,20 +12,31 @@ ROLE_CHOICES = [
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(blank=True, null=True)
-    role = models.CharField(max_length=10, choices = ROLE_CHOICES, default='donor')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='donor')
     created_at = models.DateTimeField(auto_now_add=True)
-     
+
     def __str__(self):
-        return (f"{self.user.username}'s Profile")
+        return f"{self.user.username} - {self.role}"
+
+    def save(self, *args, **kwargs):
+        """
+        If the user is assigned as an agent, create an Agent entry.
+        If the role changes to non-agent, delete the Agent entry.
+        """
+        super().save(*args, **kwargs)  # Save profile first
+
+        if self.role == 'agent':
+            Agent.objects.get_or_create(user=self.user)  # Ensure agent record exists
+        else:
+            Agent.objects.filter(user=self.user).delete()  # Remove agent record if role is changed
 
 class Agent(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Link to User model
-    city = models.CharField(max_length=100)  # City where agent operates
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    location = models.CharField(max_length=255, blank=True, null=True) 
     phone = models.CharField(max_length=15)
 
     def __str__(self):
-        return self.user.username
-
+        return f"Agent: {self.user.username}"
 class Donation(models.Model):
     DONATION_TYPES = [
         ("monetary", "Monetary"),

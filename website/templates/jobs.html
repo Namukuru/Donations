@@ -2,43 +2,165 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="text-center">Assigned Jobs</h2>
+    <!-- Job Summary -->
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div class="bg-warning p-3 rounded text-white">
+                <h4>Pending</h4>
+                <p>{{ pending_jobs_count }}</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-primary p-3 rounded text-white">
+                <h4>In Progress</h4>
+                <p>{{ in_progress_jobs_count }}</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-success p-3 rounded text-white">
+                <h4>Completed</h4>
+                <p>{{ completed_jobs_count }}</p>
+            </div>
+        </div>
+    </div>
 
-    {% if assigned_donations %}
-        <table class="table table-bordered mt-s">
-            <thead class="table-dark">
-                <tr>
-                    <th></th>
-                    <th>Donor</th>
-                    <th>Pickup Address</th>
-                    <th>Donation Items</th>
-                    <th>Status</th>
-                    <th>Assigned Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for donation in assigned_donations %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ donation.donor.username }}</td>
-                    <td>{{ donation.pickup_location }}</td>
-                    <td>{{ donation.item_quantity }} x {{ donation.item_name }}</td>
-                    <td>
-                        <span class="badge 
-                            {% if donation.status == 'pending' %} bg-warning 
-                            {% elif donation.status == 'in_progress' %} bg-primary 
-                            {% elif donation.status == 'completed' %} bg-success {% endif %}">
-                            {{ donation.get_status_display}}
-                        </span>
-                    </td>
-                    <td>{{ donation.created_at|date:"M d, Y" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-    <p class="text-center text-muted">No jobs assigned.</p>
-    {% endif %}
+    <div class="card shadow-lg">
+        <!-- Card Header with Filters -->
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Assigned Jobs</h5>
+            <div class="d-flex">
+                <input type="text" id="searchBox" class="form-control form-control-sm me-2" placeholder="Search...">
+                <select id="statusFilter" class="form-select form-select-sm me-2">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <select id="numRecords" class="form-select form-select-sm">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="all">All</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Card Body with Table -->
+        <div class="card-body p-0">
+            {% if assigned_donations %}
+                <table class="table table-bordered table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th></th>
+                            <th>Donor</th>
+                            <th>Pickup Address</th>
+                            <th>Donation Items</th>
+                            <th>Status</th>
+                            <th>Assigned Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for donation in assigned_donations %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ donation.donor.username }}</td>
+                            <td>{{ donation.pickup_location }}</td>
+                            <td>{{ donation.item_quantity }} x {{ donation.item_name }}</td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar 
+                                        {% if donation.status == 'pending' %} bg-warning w-25
+                                        {% elif donation.status == 'in_progress' %} bg-primary w-50
+                                        {% elif donation.status == 'completed' %} bg-success w-100
+                                        {% endif %}">
+                                        {{ donation.get_status_display }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ donation.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#detailsModal{{ donation.id }}">View</button>
+                                {% if donation.status == "in_progress" %}
+                                    <form method="POST" action="{% url 'mark_completed' donation.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-success btn-sm">Mark Completed</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                        <!-- Modal for Job Details -->
+                        <div class="modal fade" id="detailsModal{{ donation.id }}" tabindex="-1" aria-labelledby="modalLabel{{ donation.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalLabel{{ donation.id }}">Job Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p><strong>Donor:</strong> {{ donation.donor.username }}</p>
+                                        <p><strong>Pickup Address:</strong> {{ donation.pickup_location }}</p>
+                                        <p><strong>Item:</strong> {{ donation.item_quantity }} x {{ donation.item_name }}</p>
+                                        <p><strong>Status:</strong> {{ donation.get_status_display }}</p>
+                                        <p><strong>Assigned Date:</strong> {{ donation.created_at|date:"M d, Y" }}</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-center text-muted p-3">No jobs assigned.</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchBox = document.getElementById("searchBox");
+    const statusFilter = document.getElementById("statusFilter");
+    const numRecordsDropdown = document.getElementById("numRecords");
+    const tableRows = document.querySelectorAll("tbody tr");
+
+    function filterTable() {
+        const searchText = searchBox.value.toLowerCase();
+        const status = statusFilter.value;
+        let numRecords = numRecordsDropdown.value === "all" ? tableRows.length : parseInt(numRecordsDropdown.value);
+
+        let visibleCount = 0;
+        tableRows.forEach(row => {
+            const donor = row.cells[1].textContent.toLowerCase();
+            const pickup = row.cells[2].textContent.toLowerCase();
+            const item = row.cells[3].textContent.toLowerCase();
+            const statusText = row.cells[4].textContent.trim().toLowerCase();
+
+            const matchesSearch = donor.includes(searchText) || pickup.includes(searchText) || item.includes(searchText);
+            const matchesStatus = status === "" || statusText === status;
+
+            if (matchesSearch && matchesStatus && visibleCount < numRecords) {
+                row.style.display = "";
+                visibleCount++;
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    searchBox.addEventListener("keyup", filterTable);
+    statusFilter.addEventListener("change", filterTable);
+    numRecordsDropdown.addEventListener("change", filterTable);
+
+    filterTable(); // Initial filtering
+});
+</script>
+
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-{%endblock%}
+{% endblock %}

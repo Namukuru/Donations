@@ -1,59 +1,88 @@
-{%extends 'base.html'%} {%block content%}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Register</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <!-- Google Font for Lora -->
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&display=swap" rel="stylesheet">
+{% extends 'base.html' %}
+{% block content %}
 
-  </head>
-  <body>
-    <div class="col-md-6 offset-md-3 " style="padding-top: 50px;">
-      <h1>Register</h1>
-      
-      <form action=" " method="POST">
-        {% csrf_token %}
-    
-        {% if form.errors %}
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <strong>Your form has errors:</strong>
-            <ul>
-                {% for field in form %}
-                    {% for error in field.errors %}
-                        <li><strong>{{ field.label }}</strong>: {{ error }}</li>
-                    {% endfor %}
-                {% endfor %}
-                {% for error in form.non_field_errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endif %}
-    
-        {% for field in form %}
-            <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label">
-                    <strong>{{ field.label }}</strong>
-                </label>
-                {{ field }}
-                {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
-                {% for error in field.errors %}
-                    <div class="text-danger">{{ error }}</div>
-                {% endfor %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-dark text-white text-center">
+                    <h4>Register</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert alert-warning">
+                            <strong>Your form has errors:</strong>
+                            <ul>
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li><strong>{{ field.label }}</strong>: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                            {{ form.username }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.role.id_for_label }}" class="form-label">Register as</label>
+                            {{ form.role }}
+                        </div>
+
+                        <!-- Location Field (Initially Hidden) -->
+                        <div id="agent-location-field" class="mb-3" style="display: none;">
+                            <label for="{{ form.location.id_for_label }}" class="form-label">Agent Location</label>
+                            {{ form.location }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Register</button>
+                    </form>
+                </div>
             </div>
-        {% endfor %}
-    
-        <br />
-        <button type="submit" class="btn btn-secondary">Register</button>
-    </form>
+        </div>
     </div>
-  </body>
-</html>
-{%endblock%}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let roleField = document.querySelector("#id_role");
+            let locationField = document.querySelector("#agent-location-field");  // Div wrapping location
+            let locationInput = document.querySelector("#id_location");  // The actual input field
+
+            function toggleLocationField() {
+                if (roleField.value === "agent") {
+                    locationField.style.display = "block";  // Show the field
+                    locationInput.removeAttribute("disabled"); // Enable input
+                    locationInput.readOnly = false; // Ensure it's editable
+                } else {
+                    locationField.style.display = "none";  // Hide the field
+                    locationInput.value = "";  // Clear value
+                    locationInput.setAttribute("disabled", "disabled"); // Disable input
+                    locationInput.readOnly = true; // Ensure it's non-editable
+                }
+            }
+
+            roleField.addEventListener("change", toggleLocationField);
+            toggleLocationField();  // Run on page load to set correct state
+        });
+    </script>    
+</div>
+{% endblock %}

@@ -1,65 +1,88 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
-from .models import Donation
-from .models import UserProfile
-
+from .models import Donation, Agent, UserProfile
 class SignUpForm(UserCreationForm):
-    email = forms.EmailField(label="Email", widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Email Address'}))
-    first_name = forms.CharField(label="First Name", max_length=50, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'First Name'}))
-    last_name = forms.CharField(label="Last Name", max_length=50, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Last Name'}))
+    email = forms.EmailField(
+        label="Email",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Email Address'})
+    )
+    first_name = forms.CharField(
+        label="First Name",
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'})
+    )
+    last_name = forms.CharField(
+        label="Last Name",
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'})
+    )
+    
     ROLE_CHOICES = [
         ('donor', 'Donor'),
         ('agent', 'Agent'),
         ('recipient', 'Recipient'),
     ]
-    role = forms.ChoiceField(choices=ROLE_CHOICES, label="Register as")
+    role = forms.ChoiceField(
+        choices=ROLE_CHOICES,
+        label="Register as",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    location = forms.CharField(
+        required=False,
+        label="Agent Location",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your location'})
+    )
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'role')
+        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'role', 'location')
 
     def __init__(self, *args, **kwargs):
         super(SignUpForm, self).__init__(*args, **kwargs)
 
-        self.fields['username'].widget.attrs['class'] = 'form-control'
-        self.fields['username'].widget.attrs['placeholder'] = 'User Name'
-        self.fields['username'].label = 'Username'
-
-        self.fields['password1'].widget.attrs['class'] = 'form-control'
-        self.fields['password1'].widget.attrs['placeholder'] = 'Password'
-        self.fields['password1'].label = 'Password'
-
-        self.fields['password2'].widget.attrs['class'] = 'form-control'
-        self.fields['password2'].widget.attrs['placeholder'] = 'Confirm Password'
-        self.fields['password2'].label = 'Password'
+        self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'User Name'})
+        self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
+        self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm Password'})
+        
+        # Hide location field initially
+        self.fields['location'].widget.attrs['style'] = 'display: none;'
 
         # Remove default help text
         for field_name in self.fields:
             self.fields[field_name].help_text = None
 
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data.get("role")
+        location = cleaned_data.get("location")
+
+        # Ensure agents provide a location
+        if role == "agent" and not location:
+            self.add_error("location", "Agents must provide a location.")
+
+        return cleaned_data
+
     def save(self, commit=True):
         user = super().save(commit=False)
-        role = self.cleaned_data.get('role') 
-        
+        role = self.cleaned_data.get('role')
+        location = self.cleaned_data.get('location') if role == 'agent' else None
+
         if commit:
-            user.save()  # Now save the user first
-        
-            # Ensure no existing profile is interfering
+            user.save()
+            # Ensure a unique UserProfile is created
             UserProfile.objects.filter(user=user).delete()
-            
-            # Create a UserProfile with the correct role
-            profile = UserProfile.objects.create(user=user, role=role)
+            UserProfile.objects.create(user=user, role=role, location=location)
 
-
+            if role == 'agent':
+                Agent.objects.create(user=user, location=location)  # Save location in Agent model
         return user
+    
 class DonationForm(forms.ModelForm):
     class Meta:
         model = Donation
-        fields = ["donation_type", "amount", "message", "item_name", "item_quantity", "item_description", "pickup_location"]
+        fields = '__all__'
 
     def clean(self):
         cleaned_data = super().clean()

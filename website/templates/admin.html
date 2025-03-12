@@ -3,77 +3,139 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Admin Dashboard</h2>
-<br/>
-    <h3>Unassigned Pickup Donations</h3>
-    <table class="table table-bordered table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
+    <!-- Unassigned Donations Section -->
+    {% if unassigned_donations %}
+    <br>
+    <h3 class="text-dark">Unassigned Donations</h3> <!-- Heading outside the card -->
+    <div class="card shadow-lg">
+      <div class="card-body p-0"> <!-- Removed padding to make table fill the card -->
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped table-hover mb-0" id="donationsTable"> <!-- Removed bottom margin -->
+            <thead class="table-dark">
+              <tr>
                 <th></th>
                 <th>Donor Name</th>
                 <th>Pickup Address</th>
                 <th>Donation Items</th>
                 <th>Assign Agent</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for job in unassigned_donations %}
-            <tr>
-                <td>{{forloop.counter}}</td>
+                <th>
+                  Actions
+                  <!-- Dropdown inside the table head -->
+                  <select id="numRecords" class="form-select form-select-sm d-inline-block w-auto ms-2">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="all">All</option>
+                  </select>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for job in unassigned_donations %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
                 <td>{{ job.donor_name }}</td>
                 <td>{{ job.formatted_address }}</td>
                 <td>{{ job.donation_items }}</td>
                 <td>
-                    <form method="POST" action="{% url 'assign_agent' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="job_id" value="{{ job.id }}">
-                        <select name="agent_id" class="form-select">
-                            {% for agent in agents %}
-                                <option value="{{ agent.id }}">{{ agent.user.username }}</option>
-                            {% endfor %}
-                        </select>
+                  <form method="POST" action="{% url 'assign_agent' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="job_id" value="{{ job.id }}">
+                    <select name="agent_id" class="form-select">
+                      {% for agent in agents %}
+                        <option value="{{ agent.id }}">{{ agent.user.username }}</option>
+                      {% endfor %}
+                    </select>
                 </td>
                 <td>
-                        <button type="submit" class="btn btn-primary btn-sm mt-2">Assign</button>
-                    </form>
+                    <button type="submit" class="btn btn-primary btn-sm mt-2">Assign</button>
+                  </form>
                 </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-<br/>
-    <h3>Assigned Pickup Donations</h3>
-    <table class="table table-bordered table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th></th>
-                <th>Donor Name</th>
-                <th>Pickup Address</th>
-                <th>Donation Items</th>
-                <th>Assigned Agent</th>
-                <th>Status</th> 
-                <th>Actions</th>               
-            </tr>
-        </thead>
-        <tbody>
-            {% for job in assigned_donations%}
-            <tr>
-                <td>{{forloop.counter}}</td>
-                <td>{{ job.donor_name }}</td>
-                <td>{{ job.formatted_address }}</td>
-                <td>{{ job.donation_items }}</td>
-                <td>{{ job.assigned_agent }}</td>
-                <td>{{job.status|capfirst}}</td>
-                <td>
-                    <form method="POST" action="{% url 'unassign_agent' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="donation_id" value="{{ job.id }}">
-                        <button type="submit" class="btn btn-danger btn-sm">Unassign</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <br>
+  {% else %}
+    <!-- Display a message if no unassigned donations exist -->
+    <div class="alert alert-info" role="alert">
+      No unassigned donations available.
+    </div>
+  {% endif %}
+
+    <br/>
+        <!-- Assigned Pickup Donations Section -->
+    {% if assigned_donations %}
+    <br>
+    <h3 class="text-dark">Assigned Pickup Donations</h3> <!-- Heading outside the card -->
+    <div class="card shadow-lg">
+        <div class="card-body p-0"> <!-- Removed padding to make table fill the card -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover mb-0"> <!-- Removed bottom margin -->
+                    <thead class="table-dark">
+                    <tr>
+                        <th></th>
+                        <th>Donor Name</th>
+                        <th>Pickup Address</th>
+                        <th>Donation Items</th>
+                        <th>Assigned Agent</th>
+                        <th>Status</th> 
+                        <th>Actions</th>               
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for job in assigned_donations %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ job.donor_name }}</td>
+                        <td>{{ job.formatted_address }}</td>
+                        <td>{{ job.donation_items }}</td>
+                        <td>{{ job.assigned_agent }}</td>
+                        <td>{{ job.status|capfirst }}</td>
+                        <td>
+                            <form method="POST" action="{% url 'unassign_agent' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="donation_id" value="{{ job.id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Unassign</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <br>
+    {% else %}
+    <!-- Display a message if no assigned donations exist -->
+    <div class="alert alert-info" role="alert">
+    No assigned donations available.
+    </div>
+    {% endif %}
+    <!-- JavaScript to filter table rows -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const numRecordsDropdown = document.getElementById("numRecords");
+      const tableRows = document.querySelectorAll("#donationsTable tbody tr");
+  
+      function updateTableRows() {
+        let numRecords = numRecordsDropdown.value === "all" ? tableRows.length : parseInt(numRecordsDropdown.value);
+        
+        tableRows.forEach((row, index) => {
+          row.style.display = index < numRecords ? "" : "none";
+        });
+      }
+  
+      // Initial table filtering
+      updateTableRows();
+  
+      // Listen for dropdown changes
+      numRecordsDropdown.addEventListener("change", updateTableRows);
+    });
+  </script>
 </div>
 {% endblock %}
