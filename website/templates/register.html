@@ -51,7 +51,7 @@
 
                         <!-- Location Field (Initially Hidden) -->
                         <div id="agent-location-field" class="mb-3" style="display: none;">
-                            <label for="{{ form.location.id_for_label }}" class="form-label">Agent Location</label>
+                            <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
                             {{ form.location }}
                         </div>
 
@@ -66,9 +66,9 @@
             let roleField = document.querySelector("#id_role");
             let locationField = document.querySelector("#agent-location-field");  // Div wrapping location
             let locationInput = document.querySelector("#id_location");  // The actual input field
-
+    
             function toggleLocationField() {
-                if (roleField.value === "agent") {
+                if (roleField.value !== "donor") {  // Show for all roles except donor
                     locationField.style.display = "block";  // Show the field
                     locationInput.removeAttribute("disabled"); // Enable input
                     locationInput.readOnly = false; // Ensure it's editable
@@ -79,10 +79,10 @@
                     locationInput.readOnly = true; // Ensure it's non-editable
                 }
             }
-
+    
             roleField.addEventListener("change", toggleLocationField);
             toggleLocationField();  // Run on page load to set correct state
         });
-    </script>    
+    </script>
 </div>
 {% endblock %}

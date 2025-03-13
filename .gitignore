@@ -1,3 +1,4 @@
 #Ignoring my virtual environment
 myvirtualenv
 db.sqlite3
+.qodo

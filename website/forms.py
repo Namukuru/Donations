@@ -17,7 +17,7 @@ class SignUpForm(UserCreationForm):
         max_length=50,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'})
     )
-    
+
     ROLE_CHOICES = [
         ('donor', 'Donor'),
         ('agent', 'Agent'),
@@ -28,11 +28,11 @@ class SignUpForm(UserCreationForm):
         label="Register as",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
-    
+
     location = forms.CharField(
-        required=False,
-        label="Agent Location",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your location'})
+        label="Location",
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        required=False  # Only required for agents/recipients
     )
 
     class Meta:
@@ -45,9 +45,6 @@ class SignUpForm(UserCreationForm):
         self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'User Name'})
         self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
         self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm Password'})
-        
-        # Hide location field initially
-        self.fields['location'].widget.attrs['style'] = 'display: none;'
 
         # Remove default help text
         for field_name in self.fields:
@@ -58,16 +55,16 @@ class SignUpForm(UserCreationForm):
         role = cleaned_data.get("role")
         location = cleaned_data.get("location")
 
-        # Ensure agents provide a location
-        if role == "agent" and not location:
-            self.add_error("location", "Agents must provide a location.")
+        # Ensure agents and recipients provide a location
+        if role != "donor" and not location:
+            self.add_error("location", "This field is required for agents and recipients.")
 
         return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
         role = self.cleaned_data.get('role')
-        location = self.cleaned_data.get('location') if role == 'agent' else None
+        location = self.cleaned_data.get('location') if role != 'donor' else None
 
         if commit:
             user.save()
@@ -78,7 +75,7 @@ class SignUpForm(UserCreationForm):
             if role == 'agent':
                 Agent.objects.create(user=user, location=location)  # Save location in Agent model
         return user
-    
+        
 class DonationForm(forms.ModelForm):
     class Meta:
         model = Donation
