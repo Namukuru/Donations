@@ -62,19 +62,30 @@ class SignUpForm(UserCreationForm):
         return cleaned_data
 
     def save(self, commit=True):
+        print("DEBUG: save() method called!") 
         user = super().save(commit=False)
         role = self.cleaned_data.get('role')
         location = self.cleaned_data.get('location') if role != 'donor' else None
 
+        print(f"DEBUG: Saving user with role {role}")  # Debugging output
+
         if commit:
             user.save()
+            print(f"DEBUG: User saved with ID {user.id}")
+
             # Ensure a unique UserProfile is created
-            UserProfile.objects.filter(user=user).delete()
-            UserProfile.objects.create(user=user, role=role, location=location)
+            profile, created = UserProfile.objects.update_or_create(
+                user=user,
+                defaults={'role': role, 'location': location}
+            )
+
+            print(f"DEBUG: UserProfile created/updated with role: {profile.role}")
 
             if role == 'agent':
                 Agent.objects.create(user=user, location=location)  # Save location in Agent model
+
         return user
+
         
 class DonationForm(forms.ModelForm):
     class Meta:
