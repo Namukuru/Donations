@@ -28,12 +28,15 @@ def logout_user(request):
 
 def register_user(request):
     if request.method == 'POST':
-        print(f"DEBUG: Incoming POST data: {request.POST}")  # Debugging
         form = SignUpForm(request.POST)
         if form.is_valid():
+            
             user = form.save(commit=False)
-            print(f"DEBUG: Form cleaned data: {form.cleaned_data}")  # Check role in cleaned data
-            user=form.save()
+
+            # Set the role in the User instance (temporarily)
+            user.role = form.cleaned_data.get('role', 'donor')  # Default to 'donor' if role is not provided
+
+            user.save()  # Save the User instance
             login(request, user)
             messages.success(request, "You have successfully registered! Welcome!")
             return redirect('home')
