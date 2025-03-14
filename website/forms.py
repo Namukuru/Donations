@@ -88,6 +88,7 @@ class SignUpForm(UserCreationForm):
 
         
 class DonationForm(forms.ModelForm):
+    
     class Meta:
         model = Donation
         fields = '__all__'
@@ -99,6 +100,7 @@ class DonationForm(forms.ModelForm):
         item_name = cleaned_data.get("item_name")
         item_quantity = cleaned_data.get("item_quantity")
         item_description = cleaned_data.get("item_description")
+        message = cleaned_data.get("message")
 
         if donation_type == "monetary":
             if not amount:
@@ -108,11 +110,15 @@ class DonationForm(forms.ModelForm):
             cleaned_data["item_quantity"] = None
             cleaned_data["item_description"] = None
             cleaned_data["pickup_location"] = None
+            cleaned_data["message"] = None
+            
         elif donation_type == "in_kind":
             if not item_name:
                 raise forms.ValidationError("Item name is required for in-kind donations.")
             if not item_quantity:
                 raise forms.ValidationError("Quantity is required for in-kind donations.")
+            if not message: 
+                raise forms.ValidationError("Message is required for in-kind donations.")
             # Clear monetary field for in-kind donations
             cleaned_data["amount"] = None
         return cleaned_data

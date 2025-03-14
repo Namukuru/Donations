@@ -34,25 +34,25 @@
         <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContent">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'home' %}">Home</a>
+              <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'about' %}">About Us</a>
+              <a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">About Us</a>
             </li>
             {% if user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'account' %}">My Account</a>
+              <a class="nav-link {% if request.resolver_match.url_name == 'account' %}active{% endif %}" href="{% url 'account' %}">My Account</a>
             </li>
             {%if user.userprofile.role == "agent" %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'jobs' %}">Jobs</a>
+              <a class="nav-link {% if request.resolver_match.url_name == 'jobs' %}active{% endif %}" href="{% url 'jobs' %}">Jobs</a>
             </li>
             {% endif %}
             {% if user.is_superuser %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'report' %}">Reports</a>
+              <a class="nav-link {% if request.resolver_match.url_name == 'report' %}active{% endif %}" href="{% url 'report' %}">Reports</a>
             </li>
-            <li><a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+            <li><a class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" href="{% url 'admin_dashboard' %}">Dashboard</a></li>
             {% endif %}
             {% endif %}
           </ul>
