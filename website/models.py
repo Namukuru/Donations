@@ -23,13 +23,20 @@ class UserProfile(models.Model):
         If the user is assigned as an agent, create an Agent entry.
         If the role changes to non-agent, delete the Agent entry.
         """
-        super().save(*args, **kwargs)  # Save profile first
+        # Check if the role is being updated
+        if self.pk:  # If the profile already exists
+            old_role = UserProfile.objects.get(pk=self.pk).role
+            if old_role != self.role:  # Role has changed
+                if old_role == 'agent':
+                    Agent.objects.filter(user=self.user).delete()  # Remove old agent record
+                if self.role == 'agent':
+                    Agent.objects.get_or_create(user=self.user)  # Create new agent record
+        else:  # New profile
+            if self.role == 'agent':
+                Agent.objects.get_or_create(user=self.user)  # Create agent record
 
-        if self.role == 'agent':
-            Agent.objects.get_or_create(user=self.user)  # Ensure agent record exists
-        else:
-            Agent.objects.filter(user=self.user).delete()  # Remove agent record if role is changed
-
+        super().save(*args, **kwargs)  # Save the profile
+        
 class Agent(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     location = models.CharField(max_length=255, blank=True, null=True) 
