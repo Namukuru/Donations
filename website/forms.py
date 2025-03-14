@@ -20,8 +20,8 @@ class SignUpForm(UserCreationForm):
 
     ROLE_CHOICES = [
         ('donor', 'Donor'),
-        ('agent', 'Agent'),
         ('recipient', 'Recipient'),
+        ('agent', 'Agent'),
     ]
     role = forms.ChoiceField(
         choices=ROLE_CHOICES,
