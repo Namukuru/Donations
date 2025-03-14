@@ -92,6 +92,9 @@ class DonationForm(forms.ModelForm):
     class Meta:
         model = Donation
         fields = '__all__'
+        widgets = {
+            'message': forms.Textarea(attrs={'placeholder': 'Make a comment ...', 'rows': 3}),
+        }
 
     def clean(self):
         cleaned_data = super().clean()

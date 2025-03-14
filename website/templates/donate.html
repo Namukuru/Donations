@@ -33,23 +33,26 @@
 
         <!-- Monetary Donation Fields -->
         <div id="monetary-fields">
-        <label for="{{ form.amount.id_for_label }}">Amount:</label>
-        {{ form.amount }}  <!-- Use Django's form field rendering -->
-        <label for="{{ form.message.id_for_label }}">Message:</label>
-        {{ form.message }}  <!-- Use Django's form field rendering -->
+            <label for="{{ form.amount.id_for_label }}">Amount:</label>
+            {{ form.amount }}  <!-- Use Django's form field rendering -->
+            <label for="{{ form.message.id_for_label }}">Message:</label>
+            {{ form.message }}  <!-- Use Django's form field rendering -->
         </div>
 
         <!-- In-Kind Donation Fields -->
         <div id="in-kind-fields" class="hidden">
-        <label for="item-name">Item Name:</label>
-        <input type="text" id="item-name" name="item_name" placeholder="Enter item name">
+            <label for="item-name">Item Name:</label>
+            <input type="text" id="item-name" name="item_name" placeholder="Enter item name">
 
-        <label for="item-description">Item Description:</label>
-        <textarea id="item-description" name="item_description" placeholder="Describe the item"></textarea>
-        
-        <label for="item-quantity">Quantity:</label>
-        <input type="number" id="item-quantity" name="item_quantity" placeholder="Enter quantity">
-        </div>        
+            <label for="item-description">Item Description:</label>
+            <textarea id="item-description" name="item_description" placeholder="Describe the item"></textarea>
+            
+            <label for="item-quantity">Quantity:</label>
+            <input type="number" id="item-quantity" name="item_quantity" placeholder="Enter quantity">
+
+            <label for="{{ form.message.id_for_label }}">Message:</label>
+            {{ form.message }}  <!-- Use Django's form field rendering -->
+        </div> 
 
         <!-- Pickup Section -->
         <div id="pickup-section" class="hidden">
