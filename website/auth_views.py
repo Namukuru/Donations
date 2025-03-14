@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import SignUpForm
+from .models import Agent
 
 
 def login_user(request):
@@ -30,12 +31,12 @@ def register_user(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            
             user = form.save(commit=False)
 
-            # Set the role in the User instance (temporarily)
+            # Set the role and location in the User instance (temporarily)
             user.role = form.cleaned_data.get('role', 'donor')  # Default to 'donor' if role is not provided
-
+            user.location = form.cleaned_data.get('location', '')  # Default to empty string if location is not provided
+    
             user.save()  # Save the User instance
             login(request, user)
             messages.success(request, "You have successfully registered! Welcome!")

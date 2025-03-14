@@ -9,14 +9,16 @@ from .models import UserProfile, Agent
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        # Get the role from the User instance (set in the view)
+        # Get the role and location from the User instance (set in the view)
         role = getattr(instance, 'role', 'donor')
+        location = getattr(instance, 'location', '')
         UserProfile.objects.create(user=instance, role=role)
 
         # If the user is an agent, create an Agent record (if it doesn't already exist)
         if role == 'agent':
-            Agent.objects.get_or_create(user=instance)
-
+            agent,_ = Agent.objects.get_or_create(user=instance, defaults={'location': location})
+            agent.location = location  # Ensure location is set
+            agent.save()  # Save changes
 
 # Signal to update Agent table if role is changed to 'agent'
 @receiver(post_save, sender=UserProfile)
