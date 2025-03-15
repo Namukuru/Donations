@@ -1,23 +1,25 @@
 /* Custom styles for the floating button */
 .float {
-  position: fixed;
-  bottom: 40px;
-  right: 40px;
-  background-color: #f53636; /* Red color */
-  color: #fff;
+  background-color: #003259ff;; /* Red color */
   text-align: center;
   text-decoration: none;
-  font-size: 16px;
-  box-shadow: 2px 2px 3px #999;
   border-radius: 8px;
   width: 150px; /* Increased width to hold all the words */
   height: 50px;
   line-height: 50px;
-  transition: background-color 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1050; /* Ensure it stays on top of other elements */
+  position: fixed; 
+  bottom: 20px; 
+  right: 20px; 
+  color: white; 
+  padding: 15px 30px; 
+  font-size: 1rem; 
+  border-radius: 30px; 
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.3); 
+  transition: all 0.3s ease;
 }
 
 .float:hover {
