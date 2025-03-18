@@ -1,5 +1,5 @@
-{% extends 'base.html' %} 
-{% block content %} 
+{% extends 'base.html' %}
+{% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/about.css' %}?v=1.2" />
 
@@ -54,14 +54,48 @@
 
 <!-- Ongoing Projects -->
 <div class="container my-5">
-  <h2 class="text-center">Ongoing Projects</h2>
-  <div class="row g-3">
-    <div class="col-md-6">
-      <img src="{% static 'images/charity.jpg' %}" class="img-fluid rounded w-100" />
+  <h2 class="text-center mb-4">Ongoing Projects</h2>
+
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <!-- Project 1 -->
+    <div class="col">
+      <div class="card h-100 border-0 hover-shadow">
+        <div class="position-relative">
+          <img src="{% static 'images/charity.jpg' %}" class="card-img-top img-fluid project-img" alt="Charity Program">
+          <div class="card-text-box">
+            <h3 class="card-title mb-1 fs-5">Charity Program</h3>
+            <p class="card-text mb-0 fs-6">Providing essential resources for underprivileged children.</p>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="col-md-6">
-      <img src="{% static 'images/Hands.jpeg' %}" class="img-fluid rounded w-100" />
+
+    <!-- Project 2 -->
+    <div class="col">
+      <div class="card h-100 border-0 hover-shadow">
+        <div class="position-relative">
+          <img src="{% static 'images/Hands.jpeg' %}" class="card-img-top img-fluid project-img" alt="Community Support">
+          <div class="card-text-box">
+            <h3 class="card-title mb-1 fs-5">Community Support</h3>
+            <p class="card-text mb-0 fs-6">Helping small businesses and artisans grow.</p>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Project 3 -->
+    <div class="col">
+      <div class="card h-100 border-0 hover-shadow">
+        <div class="position-relative">
+          <img src="{% static 'images/Hands.jpeg' %}" class="card-img-top img-fluid project-img" alt="Environmental Initiative">
+          <div class="card-text-box">
+            <h3 class="card-title mb-1 fs-5">Environmental Initiative</h3>
+            <p class="card-text mb-0 fs-6">Planting trees and promoting eco-friendly practices.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
