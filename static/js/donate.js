@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // DOM Elements
     const donationType = document.querySelector("#donation-type");
     const monetaryFields = document.querySelector("#monetary-fields");
     const inKindFields = document.querySelector("#in-kind-fields");
@@ -6,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const pickupChoice = document.querySelector("select[name='pickup_choice']");
     const pickupLocation = document.querySelector("input[name='pickup_location']");
     const mapContainer = document.createElement("div");
-    
+
     let map, marker;
 
     // Create map container and insert after pickup location field
@@ -26,7 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
             monetaryFields.classList.add("hidden");
             inKindFields.classList.remove("hidden");
             pickupSection.classList.remove("hidden");
-            messageField.classList.add("hidden");
         }
     }
 

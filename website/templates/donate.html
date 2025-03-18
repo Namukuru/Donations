@@ -27,16 +27,14 @@
         <!-- Donation Type Selection -->
         <label for="donation-type">Donation Type:</label>
         <select id="donation-type" name="donation_type" class="donation-type">
-        <option value="monetary">Monetary Donation</option>
-        <option value="in_kind">In-Kind Donation</option>
+            <option value="monetary">Monetary Donation</option>
+            <option value="in_kind">In-Kind Donation</option>
         </select>
 
         <!-- Monetary Donation Fields -->
         <div id="monetary-fields">
             <label for="{{ form.amount.id_for_label }}">Amount:</label>
-            {{ form.amount }}  <!-- Use Django's form field rendering -->
-            <label for="{{ form.message.id_for_label }}">Message:</label>
-            {{ form.message }}  <!-- Use Django's form field rendering -->
+            {{ form.amount }}
         </div>
 
         <!-- In-Kind Donation Fields -->
@@ -46,32 +44,33 @@
 
             <label for="item-description">Item Description:</label>
             <textarea id="item-description" name="item_description" placeholder="Describe the item"></textarea>
-            
+
             <label for="item-quantity">Quantity:</label>
             <input type="number" id="item-quantity" name="item_quantity" placeholder="Enter quantity">
+        </div>
 
-            <label for="{{ form.message.id_for_label }}">Message:</label>
-            {{ form.message }}  <!-- Use Django's form field rendering -->
-        </div> 
+        <!-- Shared Message Field (Appears for Both Types) -->
+        <label for="{{ form.message.id_for_label }}">Message:</label>
+        {{ form.message }}
 
         <!-- Pickup Section -->
         <div id="pickup-section" class="hidden">
-        <label for="{{ form.pickup_choice.id_for_label }}">Pickup Choice:</label>
-        <select id="{{ form.pickup_choice.id_for_label }}" name="pickup_choice">
-            <option value="current">Use Current Location</option>
-            <option value="other">Enter Address</option>
-        </select>
+            <label for="{{ form.pickup_choice.id_for_label }}">Pickup Choice:</label>
+            <select id="{{ form.pickup_choice.id_for_label }}" name="pickup_choice">
+                <option value="current">Use Current Location</option>
+                <option value="other">Enter Address</option>
+            </select>
 
-        <label for="pickup-location">Pickup Location:</label>
-        <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address" disabled>
+            <label for="pickup-location">Pickup Location:</label>
+            <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address" disabled>
         </div>
 
-        <br>
-        <br>
+        <br><br>
         <button type="submit" class="btn btn-primary">Donate</button>
         <a href="{% url 'account' %}" class="btn btn-secondary">Back</a>
     </form>
 </div>
+
 <script src="{% static 'js/donate.js' %}"></script>
 
 <!-- Leaflet.js CDN -->

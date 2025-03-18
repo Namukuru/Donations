@@ -33,8 +33,11 @@ def donate(request):
         form = DonationForm(request.POST)
         if form.is_valid():
             donation = form.save(commit=False)
-            donation.donor = request.user  # Associate the donation with the logged-in user
+            donation.donor = request.user  # Associate donation with logged-in user
 
+            # Assign message explicitly (This prevents it from being ignored)
+            donation.message = form.cleaned_data.get("message", "")
+            
             # Set default status only for in-kind donations
             if donation.donation_type == "in_kind" and not donation.status:
                 donation.status = 'pending'
@@ -55,6 +58,7 @@ def donate(request):
     else:
         form = DonationForm()
     return render(request, 'donate.html', {'form': form})
+
 
 def donation_success(request):
     return render(request, 'donate.html')
@@ -87,7 +91,6 @@ def account(request):
         "total_donations": total_donations,
     }
     return render(request, "account.html", context)
-
 
 def report(request):
     # Use select_related to optimize foreign key queries
@@ -132,8 +135,9 @@ def report(request):
         "donations_per_donor": donations_per_donor,
         "in_kind_donations": in_kind_donations,
     }
-
     return render(request, "report.html", context)
+
+
 def jobs(request):
     """ Show jobs assigned to the logged-in agent """
     if not request.user.is_authenticated:

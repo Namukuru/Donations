@@ -91,7 +91,7 @@ class DonationForm(forms.ModelForm):
     
     class Meta:
         model = Donation
-        fields = '__all__'
+        fields = ['donation_type', 'amount', 'item_name', 'item_quantity', 'item_description', 'pickup_location', 'message']
         exclude = [] 
         widgets = {
             'message': forms.Textarea(attrs={'placeholder': 'Make a comment ...', 'rows': 3}),
@@ -113,7 +113,6 @@ class DonationForm(forms.ModelForm):
             cleaned_data["item_quantity"] = None
             cleaned_data["item_description"] = None
             cleaned_data["pickup_location"] = None
-            cleaned_data["message"] = None
             cleaned_data["status"] = None 
             
         elif donation_type == "in_kind":
@@ -125,4 +124,5 @@ class DonationForm(forms.ModelForm):
                 self.add_error('message', "Message is required for in-kind donations.")
             # Clear monetary field for in-kind donations
             cleaned_data["amount"] = None
+
         return cleaned_data
