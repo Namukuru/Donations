@@ -1,67 +1,85 @@
-/* Custom styles for the floating button */
-.float {
-
-  background-color: #003259ff;
-  text-align: center;
-  text-decoration: none;
-  border-radius: 8px;
-  width: 150px; /* Increased width to hold all the words */
-  height: 50px;
-  line-height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050; /* Ensure it stays on top of other elements */
-  position: fixed; 
-  bottom: 20px; 
-  right: 20px; 
-  color: white; 
-  padding: 15px 30px; 
-  font-size: 1rem; 
-  border-radius: 30px; 
-  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.3); 
-  transition: all 0.3s ease;
-}
-
-.float:hover {
-  background-color: #e04d13; /* Darker red color */
-  color: #fff;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
-}
-
-.float:hover {
-  animation: bounce 1s;
-}
-
+/* Hero Section */
 .hero-section {
-  background-image: url('../images/charity.jpg');
+  background-image: url("../images/charity.jpg");
   background-size: cover;
   background-position: center;
   border-radius: 20px;
   overflow: hidden;
   position: relative;
-  padding: 50px;
   text-align: center;
-  height: 300px;
+  color: white;
+  padding: 100px 20px;
 }
 
-.overlay {
-  border-radius: 20px;
+.hero-section .overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* Adjust overlay opacity */
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
 }
 
 .hero-content {
   position: relative;
+  z-index: 2;
+}
+
+/* Project Cards */
+.project-card {
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* About & Vision Section */
+.about-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+/* FAQ Section */
+.accordion-button {
+  font-weight: bold;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: #007bff;
   color: white;
-  z-index: 1;
+}
+
+/* Floating Donate Button */
+.float {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #ff5733;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.float:hover {
+  background-color: #c13b20;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 50px 20px;
+  }
+  
+  .project-card {
+    margin-bottom: 10px;
+  }
+
+  .float {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
 }

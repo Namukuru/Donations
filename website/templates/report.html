@@ -1,19 +1,17 @@
 {% extends 'base.html' %}
 {% block content %}
+{% load static %}
 <div class="container">
   <h2>Donation Report</h2>
 
   <!-- Display total donations and number of donors -->
   <div class="row">
-    <!-- Total Donations -->
     <div class="col-md-6 mb-3">
       <div class="bg-primary p-3 rounded text-white h-100">
         <h3 class="mb-0">Total Donations:</h3>
         <p class="mb-0">${{ total_donations }}</p>
       </div>
     </div>
-
-    <!-- Number of Donors -->
     <div class="col-md-6 mb-3">
       <div class="bg-success p-3 rounded text-white h-100">
         <h3 class="mb-0">Number of Donors:</h3>
@@ -26,6 +24,7 @@
   <h2>Monetary Donations by Donor</h2>
   <div class="card shadow-lg mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Monetary Donations</h5>
       <select id="monetaryRecords" class="form-select form-select-sm w-auto ms-auto">
         <option value="5" selected>5</option>
         <option value="10">10</option>
@@ -38,7 +37,7 @@
         <table id="monetaryTable" class="table table-striped table-hover table-bordered mb-0">
           <thead class="table-dark">
             <tr>
-              <th></th>
+              <th>#</th>
               <th>Donor</th>
               <th>Total Donated</th>
             </tr>
@@ -58,7 +57,7 @@
   </div>
 
   <!-- Table: In-Kind Donations -->
-  <h2>In-Kind Donations By Donor</h2>
+  <h2>In-Kind Donations by Donor</h2>
   <div class="card shadow-lg">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">In-Kind Donations</h5>
@@ -74,7 +73,7 @@
         <table id="kindTable" class="table table-striped table-hover table-bordered mb-0">
           <thead class="table-dark">
             <tr>
-              <th></th>
+              <th>#</th>
               <th>Donor</th>
               <th>Item Name</th>
               <th>Quantity</th>
@@ -100,26 +99,5 @@
   </div>
 </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    function setupDropdownFilter(tableId, dropdownId) {
-        const dropdown = document.getElementById(dropdownId);
-        const rows = document.querySelectorAll(`#${tableId} tbody tr`);
-
-        function updateRows() {
-            let numRecords = dropdown.value === "all" ? rows.length : parseInt(dropdown.value);
-            rows.forEach((row, index) => {
-                row.style.display = index < numRecords ? "" : "none";
-            });
-        }
-
-        dropdown.value = "5"; // Default selection
-        updateRows(); // Apply filter on load
-        dropdown.addEventListener("change", updateRows);
-    }
-
-    setupDropdownFilter("monetaryTable", "monetaryRecords");
-    setupDropdownFilter("kindTable", "kindRecords");
-});
-</script>
+<script src="{% static 'js/report.js' %}"></script>
 {% endblock %}

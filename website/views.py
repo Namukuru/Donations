@@ -63,70 +63,77 @@ def about(request):
     return render(request, 'about.html', {})
 
 def account(request):
-    donations = Donation.objects.filter(donor=request.user)
-    
-    # Separate monetary and in-kind donations
-    monetary_donations = donations.filter(donation_type="monetary")
-    in_kind_donations = donations.filter(donation_type="in_kind")
-    
-    # Convert pickup_location (coordinates) into an address
+    # Fetch all donations for the logged-in user, optimizing related queries
+    donations = (
+        Donation.objects.filter(donor=request.user)
+        .select_related("assigned_agent")  # Optimizes foreign key lookup
+        .only("id", "donation_type", "amount", "created_at", "item_name", "item_quantity", "item_description", "message", "pickup_location", "assigned_agent__username")  # Fetch only necessary fields
+    )
+
+    # Separate monetary and in-kind donations efficiently
+    monetary_donations = [donation for donation in donations if donation.donation_type == "monetary"]
+    in_kind_donations = [donation for donation in donations if donation.donation_type == "in_kind"]
+
+    # Convert pickup_location (coordinates) into an address efficiently
     for donation in in_kind_donations:
-        if donation.pickup_location:
-            donation.pickup_address = get_address_from_coordinates(donation.pickup_location)
-        else:
-            donation.pickup_address = "No pickup location provided"
-    
-    # Calculate the total donations for the logged-in user only
-    total_donations = donations.aggregate(total=Sum('amount'))['total'] or 0
-    
+        donation.pickup_address = get_address_from_coordinates(donation.pickup_location) if donation.pickup_location else "No pickup location provided"
+
+    # Calculate the total monetary donations efficiently
+    total_donations = sum(donation.amount for donation in monetary_donations if donation.amount) or 0
+
     context = {
-        'monetary_donations': monetary_donations,
-        'in_kind_donations': in_kind_donations,
-        'total_donations': total_donations,
-        'donations': donations,
+        "monetary_donations": monetary_donations,
+        "in_kind_donations": in_kind_donations,
+        "total_donations": total_donations,
     }
-    return render(request, 'account.html', context)
-    
+    return render(request, "account.html", context)
+
+
 def report(request):
-    # Fetch all donations efficiently (avoid multiple DB hits)
-    donations = Donation.objects.select_related('donor')
+    # Use select_related to optimize foreign key queries
+    donations = Donation.objects.select_related("donor")
 
-    # Aggregate total monetary donations
-    total_donations = donations.filter(donation_type="monetary").aggregate(total=Sum('amount'))['total'] or 0
+    # Aggregate monetary donations in one query
+    total_donations = donations.filter(donation_type="monetary").aggregate(
+        total=Sum("amount")
+    )["total"] or 0
 
-    # Count unique donors
-    number_of_donors = donations.values('donor').distinct().count()
+    # Optimize donor count query using distinct on donor_id
+    number_of_donors = donations.values("donor_id").distinct().count()
 
-    # Donations per donor (optimized query)
-    donations_per_donor = donations.filter(donation_type="monetary").values('donor__username').annotate(total_donated=Sum('amount'))
+    # Fetch total donations per donor efficiently
+    donations_per_donor = (
+        donations.filter(donation_type="monetary")
+        .values("donor__username")
+        .annotate(total_donated=Sum("amount"))
+    )
 
-    # Fetch in-kind donations and prevent N+1 queries
-    in_kind_donations = donations.filter(donation_type="in_kind").select_related('donor')
+    # Fetch in-kind donations with donor data
+    in_kind_donations = donations.filter(donation_type="in_kind").select_related("donor")
 
-    # Cache addresses to avoid repeated calls
+    # Cache pickup addresses to avoid repeated function calls
     for donation in in_kind_donations:
         cache_key = f"pickup_address_{donation.id}"
         pickup_address = cache.get(cache_key)
 
         if not pickup_address:
-            if donation.pickup_location:
-                pickup_address = get_address_from_coordinates(donation.pickup_location)
-            else:
-                pickup_address = "No pickup location provided"
+            pickup_address = (
+                get_address_from_coordinates(donation.pickup_location)
+                if donation.pickup_location
+                else "No pickup location provided"
+            )
             cache.set(cache_key, pickup_address, timeout=86400)  # Cache for 1 day
 
         donation.pickup_address = pickup_address  # Attach cached address
 
-    # Context for rendering
     context = {
-        'total_donations': total_donations,
-        'number_of_donors': number_of_donors,
-        'donations_per_donor': donations_per_donor,
-        'in_kind_donations': in_kind_donations,  # pickup_address is cached
+        "total_donations": total_donations,
+        "number_of_donors": number_of_donors,
+        "donations_per_donor": donations_per_donor,
+        "in_kind_donations": in_kind_donations,
     }
 
-    return render(request, 'report.html', context)
-
+    return render(request, "report.html", context)
 def jobs(request):
     """ Show jobs assigned to the logged-in agent """
     if not request.user.is_authenticated:
