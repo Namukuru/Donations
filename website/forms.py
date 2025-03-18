@@ -88,7 +88,6 @@ class SignUpForm(UserCreationForm):
 
         
 class DonationForm(forms.ModelForm):
-    
     class Meta:
         model = Donation
         fields = ['donation_type', 'amount', 'item_name', 'item_quantity', 'item_description', 'pickup_location', 'message']
@@ -126,3 +125,8 @@ class DonationForm(forms.ModelForm):
             cleaned_data["amount"] = None
 
         return cleaned_data
+    
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["email"]  # Only allow updating email

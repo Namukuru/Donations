@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
-from .forms import  DonationForm
+from .forms import  DonationForm, ProfileUpdateForm
 from .models import UserProfile, Donation, Agent
 from .utils import get_address_from_coordinates 
 from django.core.cache import cache
@@ -65,6 +65,39 @@ def donation_success(request):
 
 def about(request):
     return render(request, 'about.html', {})
+
+@login_required
+def profile(request):
+    agent = None
+    if hasattr(request.user, 'agent'):
+        agent = request.user.agent  # Get the agent object
+
+    context = {
+        'agent': agent
+    }
+    return render(request, 'profile.html', context)
+
+@login_required
+def edit_profile(request):
+    user = request.user
+    agent = getattr(user, 'agent', None)  # Get agent if it exists
+
+    if request.method == "POST":
+        form = ProfileUpdateForm(request.POST, instance=user)
+        if agent:
+            agent.location = request.POST.get("location", agent.location)
+            agent.phone = request.POST.get("phone", agent.phone)
+            agent.save()
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully!")
+            return redirect("profile")  # Redirect to profile page
+
+    else:
+        form = ProfileUpdateForm(instance=user)
+
+    return render(request, "edit_profile.html", {"form": form, "agent": agent})
 
 def account(request):
     # Fetch all donations for the logged-in user, optimizing related queries

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+
+<div class="container mt-5">
+    <div class="card profile-card shadow-lg p-4">
+        <div class="card-body text-center">
+            <h2 class="card-title mb-4 text-primary">My Profile</h2>
+
+            <div class="profile-info">
+                <p><strong>Username:</strong> <span class="text-muted">{{ user.username }}</span></p>
+                <p><strong>Email:</strong> <span class="text-muted">{{ user.email }}</span></p>
+
+                {% if agent %}
+                    <p><strong>Phone:</strong> <span class="text-muted">{{ agent.phone }}</span></p>
+                    <p><strong>Location:</strong> <span class="text-muted">{{ agent.location }}</span></p>
+                {% else %}
+                    <p><strong>Phone:</strong> <span class="text-muted">Not available</span></p>
+                    <p><strong>Location:</strong> <span class="text-muted">Not available</span></p>
+                {% endif %}
+
+                <p><strong>Role:</strong> 
+                    <span class="badge {% if user.is_superuser %} bg-danger {% elif agent %} bg-warning {% else %} bg-success {% endif %}">
+                        {% if user.is_superuser %}
+                            Admin
+                        {% elif agent %}
+                            Agent
+                        {% else %}
+                            Donor
+                        {% endif %}
+                    </span>
+                </p>
+            </div>
+
+            <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary mt-3">Edit Profile</a>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
