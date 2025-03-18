@@ -1,14 +1,16 @@
 {% extends 'base.html' %} {% block content %} {% load static %}
-<link rel="stylesheet" href="{% static 'css/about.css' %}" />
+<link rel="stylesheet" href="{% static 'css/about.css' %}?v=1.0" />
 
 <!-- Hero Section -->
-<div class="hero-section" style="background-image: url({% static 'images/charity.jpg' %}); background-size: cover; background-position: center; border-radius: 20px; overflow: hidden;">
-  <div class="overlay" style="border-radius: 20px"></div>
+
+<div class="hero-section">
+  <div class="overlay"></div>
   <div class="hero-content">
     <h1 class="display-4 fw-bold">About Us</h1>
     <p>CompassioNet is here to build a safe future for the next generations</p>
   </div>
 </div>
+
 
 <!-- Project Sections -->
 <div class="container my-5">

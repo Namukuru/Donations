@@ -35,8 +35,9 @@ def donate(request):
             donation = form.save(commit=False)
             donation.donor = request.user  # Associate the donation with the logged-in user
 
-            if not donation.status:
-                donation.status = 'pending' 
+            # Set default status only for in-kind donations
+            if donation.donation_type == "in_kind" and not donation.status:
+                donation.status = 'pending'
 
             # Ensure correct fields are saved based on donation type
             if donation.donation_type == "monetary":
@@ -44,9 +45,10 @@ def donate(request):
                 donation.item_quantity = None
                 donation.item_description = None
                 donation.pickup_location = None  # No pickup location for monetary donations
+                donation.status = None  # No status for monetary donations
             else:
                 donation.amount = None  # No amount for in-kind donations
-                
+
             donation.save()  # Save the donation to the database
             messages.success(request, "You have successfully made a donation")
             return redirect('account')

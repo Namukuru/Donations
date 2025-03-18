@@ -73,7 +73,7 @@ class Donation(models.Model):
 
     # Pickup Details
     pickup_location = models.CharField(max_length=255, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', blank=True,null=True)
     assigned_agent = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_donations')
 
     def __str__(self):
