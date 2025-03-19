@@ -3,6 +3,7 @@ import hashlib
 import logging
 from django.conf import settings
 from django.core.cache import cache
+from math import radians, sin, cos, sqrt, atan2
 
 logger = logging.getLogger(__name__)  # Logger for debugging
 
@@ -52,3 +53,25 @@ def get_address_from_coordinates(coordinates):
     except Exception as e:
         logger.exception(f"Unexpected error in address lookup: {e}")
         return "Address lookup failed"
+
+def haversine(lat1, lon1, lat2, lon2):
+    """
+    Calculate the great-circle distance between two points on the Earth using the Haversine formula.
+    """
+    # Radius of the Earth in kilometers
+    R = 6371.0
+
+    # Convert latitude and longitude from degrees to radians
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+
+    # Difference in coordinates
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    # Haversine formula
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    # Distance in kilometers
+    distance = R * c
+    return distance

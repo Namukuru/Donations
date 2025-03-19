@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db.models import Sum
 from .forms import  DonationForm, ProfileUpdateForm
 from .models import UserProfile, Donation, Agent
-from .utils import get_address_from_coordinates 
+from .utils import get_address_from_coordinates, haversine
 from django.core.cache import cache
 
 def home(request):
@@ -170,16 +170,50 @@ def report(request):
     }
     return render(request, "report.html", context)
 
-
 def jobs(request):
-    """ Show jobs assigned to the logged-in agent """
+    """Show jobs assigned to the logged-in agent."""
     if not request.user.is_authenticated:
         return render(request, "error.html", {"message": "You must be logged in."})
 
-    # Retrieve assigned donations based on User, not Agent
-    assigned_donations = Donation.objects.filter(assigned_agent=request.user)
+    # Retrieve assigned donations for the logged-in agent
+    assigned_donations = (
+        Donation.objects.filter(assigned_agent=request.user)
+        .select_related("donor")  # Optimize foreign key lookup
+        .only(
+            "id",
+            "donation_type",
+            "amount",
+            "created_at",
+            "item_name",
+            "item_quantity",
+            "item_description",
+            "message",
+            "pickup_location",
+            "status",
+            "donor__username",  # Fetch donor's username
+        )
+    )
 
-    return render(request, "jobs.html", {"assigned_donations": assigned_donations})
+    # Convert pickup_location (coordinates) into a readable address
+    for donation in assigned_donations:
+        donation.pickup_address = (
+            get_address_from_coordinates(donation.pickup_location)
+            if donation.pickup_location
+            else "No pickup location provided"
+        )
+
+    # Count donations by status
+    pending_jobs_count = assigned_donations.filter(status="pending").count()
+    in_progress_jobs_count = assigned_donations.filter(status="in_progress").count()
+    completed_jobs_count = assigned_donations.filter(status="completed").count()
+
+    context = {
+        "assigned_donations": assigned_donations,
+        "pending_jobs_count": pending_jobs_count,
+        "in_progress_jobs_count": in_progress_jobs_count,
+        "completed_jobs_count": completed_jobs_count,
+    }
+    return render(request, "jobs.html", context)
 
 def assign_agent(request):
     if request.method == "POST":
@@ -225,6 +259,22 @@ def unassign_agent(request):
         messages.success(request, f"Agent unassigned from donation {donation_id}")
         return redirect("admin_dashboard")
 
+def mark_completed(request, donation_id):
+    """
+    Mark a donation as completed.
+    """
+    # Fetch the donation object
+    donation = get_object_or_404(Donation, id=donation_id)
+
+    # Update the donation status to "completed"
+    donation.status = "completed"
+    donation.save()
+
+    # Add a success message
+    messages.success(request, f"Donation {donation.id} marked as completed.")
+
+    # Redirect to the jobs page or any other page
+    return redirect("jobs")  # Replace "jobs" with the appropriate URL name
 @login_required
 def admin_dashboard(request):
     # Get donations that are in-kind and unassigned

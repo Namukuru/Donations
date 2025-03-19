@@ -14,6 +14,7 @@ urlpatterns = [
     path("profile/edit/", views.edit_profile, name="edit_profile"),
     path('report/', views.report, name='report'),
     path('jobs/', views.jobs, name='jobs'),
+    path('mark_completed/<int:donation_id>/', views.mark_completed, name='mark_completed'),
     path("assign-agent/", views.assign_agent, name="assign_agent"),
     path('unassign_agent/', views.unassign_agent, name='unassign_agent'),
     path('admin-dashboard/', views.admin_dashboard, name="admin_dashboard"),
