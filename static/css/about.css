@@ -28,17 +28,37 @@
 
 /* Project Cards */
 .project-card {
-  padding: 20px;
+  padding: 30px 20px;
   text-align: center;
   font-weight: bold;
+  border-radius: 12px;  /* Rounded corners for modern design */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Soft shadow effect */
+  transition: all 0.3s ease;  /* Smooth transition for hover effect */
 }
 
-/* About & Vision Section */
-.about-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 10px;
+.project-card h4 {
+  font-size: 1.25rem;  /* Slightly larger heading */
+  line-height: 1.4;  /* Improved line spacing */
 }
+
+.project-card:hover {
+  transform: translateY(-5px);  /* Subtle lifting effect on hover */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);  /* Enhanced shadow on hover */
+}
+
+/* Specific Background Colors */
+.bg-custom-blue {
+  background-color: #007bff; /* Custom blue color */
+}
+
+.bg-warning {
+  background-color: #f39c12; /* Yellowish warning color */
+}
+
+.bg-danger {
+  background-color: #e74c3c; /* Red danger color */
+}
+
 
 /* Ongoing Projects */
 .card-img-top {
@@ -97,7 +117,7 @@
   .hero-section {
     padding: 50px 20px;
   }
-  
+
   .project-card {
     margin-bottom: 10px;
   }
@@ -106,4 +126,83 @@
     font-size: 14px;
     padding: 8px 16px;
   }
+}
+
+/* Additional Styles for Better Responsiveness and Aesthetics */
+
+/* Ensure the image in the About section is responsive */
+.about-image {
+  max-width: 300px;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Adjust layout for smaller screens */
+@media (max-width: 992px) {
+  .row.align-items-center {
+    flex-direction: column;
+  }
+
+  .col-lg-6 {
+    width: 100%;
+    text-align: center;
+  }
+
+  .about-image {
+    margin-top: 20px;
+    max-width: 80%;
+  }
+}
+
+/* Optional: Add padding and spacing for better readability */
+.container.my-5 {
+  padding: 20px;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+/* Enhance the hero section text readability */
+.hero-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Improve card hover effects */
+.hover-shadow {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-shadow:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for FAQ accordion */
+.accordion-item {
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: #007bff;
+  color: white;
+}
+
+.accordion-body {
+  padding: 15px;
 }
