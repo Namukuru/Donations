@@ -1,3 +1,4 @@
+/* profile.css */
 .profile-card {
     max-width: 500px;
     margin: auto;
@@ -14,4 +15,11 @@
 .profile-info p {
     font-size: 1.1rem;
     margin-bottom: 10px;
+}
+
+#map {
+    height: 400px; /* Set a fixed height */
+    width: 100%; /* Set width to 100% of its container */
+    border-radius: 8px;
+    margin-top: 10px;
 }

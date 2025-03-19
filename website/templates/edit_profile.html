@@ -2,6 +2,7 @@
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
 <div class="container mt-5">
     <div class="card profile-card shadow-lg p-4">
@@ -36,7 +37,17 @@
                 <!-- Location Update -->
                 <div class="mb-3">
                     <label class="form-label"><strong>Location:</strong></label>
-                    <input type="text" name="location" class="form-control" value="{{ agent.location }}">
+                    <!-- Dropdown to choose current or another location -->
+                    <select id="location-select" class="form-select" name="location_option">
+                        <option value="current" selected>Use Current Location</option>
+                        <option value="another">Use Another Location</option>
+                    </select>
+
+                    <!-- Location input -->
+                    <input type="text" id="location-input" name="location" class="form-control mt-2" value="{{ agent.location }}" disabled>
+
+                    <!-- Map container (hidden by default) -->
+                    <div id="map" style="height: 400px; width: 100%; display: none;"></div>
                 </div>
                 {% endif %}
 
@@ -47,24 +58,9 @@
     </div>
 </div>
 
-<style>
-    .profile-card {
-        max-width: 500px;
-        margin: auto;
-        border-radius: 10px;
-        background: white;
-        transition: 0.3s;
-    }
-
-    .profile-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .profile-info p {
-        font-size: 1.1rem;
-        margin-bottom: 10px;
-    }
-</style>
+<!-- Include Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- Include custom JS for the map -->
+<script src="{% static 'js/edit_profile.js' %}"></script>
 
 {% endblock %}
