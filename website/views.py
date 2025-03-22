@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 from .forms import  DonationForm, ProfileUpdateForm
-from .models import UserProfile, Donation, Agent
+from .models import UserProfile, Donation, Agent, Recipient
 from .utils import get_address_from_coordinates, haversine
 from django.core.cache import cache
 
@@ -68,12 +68,17 @@ def about(request):
 
 @login_required
 def profile(request):
-    agent = None
-    if hasattr(request.user, 'agent'):
-        agent = request.user.agent  # Get the agent object
+    user = request.user
 
+    # Fetch agent and recipient with select_related to avoid additional queries
+    agent = Agent.objects.filter(user=user).select_related('user').first()
+    recipient = Recipient.objects.filter(user=user).select_related('user').first()
+
+    # Prefetch all necessary data
     context = {
-        'agent': agent
+        'agent': agent,
+        'recipient': recipient,
+        'user': user,  # Pass the user object explicitly
     }
     return render(request, 'profile.html', context)
 
@@ -277,17 +282,36 @@ def mark_completed(request, donation_id):
     return redirect("jobs")  # Replace "jobs" with the appropriate URL name
 @login_required
 def admin_dashboard(request):
-    # Get donations that are in-kind and unassigned
-    unassigned_donations = Donation.objects.filter(donation_type="in_kind", assigned_agent__isnull=True)
-    assigned_donations = Donation.objects.filter(donation_type="in_kind", assigned_agent__isnull=False)
+    # Optimize database queries using select_related
+    unassigned_donations = Donation.objects.filter(
+        donation_type="in_kind", assigned_agent__isnull=True
+    ).select_related('donor', 'assigned_agent')
 
-    # Convert donations into structured data for the template
+    assigned_donations = Donation.objects.filter(
+        donation_type="in_kind", assigned_agent__isnull=False
+    ).select_related('donor', 'assigned_agent')
+
+    # Batch geocoding for pickup addresses
+    pickup_locations = set()
+    for donation in unassigned_donations:
+        if donation.pickup_location:
+            pickup_locations.add(donation.pickup_location)
+    for donation in assigned_donations:
+        if donation.pickup_location:
+            pickup_locations.add(donation.pickup_location)
+
+    # Cache pickup addresses
+    address_map = {}
+    for location in pickup_locations:
+        address_map[location] = get_address_from_coordinates(location)
+
+    # Convert donations into structured data
     unassigned_donations_data = [
         {
             "id": donation.id,
             "donor_name": donation.donor.username if donation.donor else "Anonymous",
-            "pickup_address": donation.pickup_location,  # Original address (assumed not to be coordinates)
-            "formatted_address": get_address_from_coordinates(donation.pickup_location) if donation.pickup_location else "N/A",
+            "pickup_address": donation.pickup_location,
+            "formatted_address": address_map.get(donation.pickup_location, "N/A"),
             "donation_items": f"{donation.item_quantity or 1}x {donation.item_name}",
         }
         for donation in unassigned_donations
@@ -298,7 +322,7 @@ def admin_dashboard(request):
             "id": donation.id,
             "donor_name": donation.donor.username if donation.donor else "Anonymous",
             "pickup_address": donation.pickup_location,
-            "formatted_address": get_address_from_coordinates(donation.pickup_location) if donation.pickup_location else "N/A",
+            "formatted_address": address_map.get(donation.pickup_location, "N/A"),
             "donation_items": f"{donation.item_quantity or 1}x {donation.item_name}",
             "assigned_agent": donation.assigned_agent.username if donation.assigned_agent else "Unassigned",
             "status": donation.status,
@@ -309,6 +333,6 @@ def admin_dashboard(request):
     context = {
         "unassigned_donations": unassigned_donations_data,
         "assigned_donations": assigned_donations_data,
-        "agents": Agent.objects.all(),
+        "agents": Agent.objects.all().only('id', 'username'),  # Optimize agent query
     }
     return render(request, "admin.html", context)

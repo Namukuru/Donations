@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+
 {% block content %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/profile.css' %}">
@@ -21,11 +22,13 @@
                 {% endif %}
 
                 <p><strong>Role:</strong> 
-                    <span class="badge {% if user.is_superuser %} bg-danger {% elif agent %} bg-warning {% else %} bg-success {% endif %}">
+                    <span class="badge {% if user.is_superuser %} bg-danger {% elif agent %} bg-warning {% elif recipient %} bg-info {% else %} bg-success {% endif %}">
                         {% if user.is_superuser %}
                             Admin
                         {% elif agent %}
                             Agent
+                        {% elif recipient %}
+                            Recipient
                         {% else %}
                             Donor
                         {% endif %}
@@ -37,6 +40,5 @@
         </div>
     </div>
 </div>
-
 
 {% endblock %}
