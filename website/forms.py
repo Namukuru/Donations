@@ -1,7 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
-from .models import Donation, Agent, UserProfile
+from .models import Donation, Agent, UserProfile, Recipient
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(
         label="Email",
@@ -35,9 +35,22 @@ class SignUpForm(UserCreationForm):
         required=False  # Only required for agents/recipients
     )
 
+    # Fields specific to recipients
+    phone_number = forms.CharField(
+        label="Phone Number",
+        max_length=15,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
+        required=False
+    )
+    population = forms.IntegerField(
+        label="Population",
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Population'}),
+        required=False
+    )
+
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'role', 'location')
+        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'role', 'location', 'phone_number', 'population')
 
     def __init__(self, *args, **kwargs):
         super(SignUpForm, self).__init__(*args, **kwargs)
@@ -54,10 +67,19 @@ class SignUpForm(UserCreationForm):
         cleaned_data = super().clean()
         role = cleaned_data.get("role")
         location = cleaned_data.get("location")
+        phone_number = cleaned_data.get("phone_number")
+        population = cleaned_data.get("population")
 
         # Ensure agents and recipients provide a location
         if role != "donor" and not location:
             self.add_error("location", "This field is required for agents and recipients.")
+
+        # Ensure recipients provide a phone number and population
+        if role == "recipient":
+            if not phone_number:
+                self.add_error("phone_number", "This field is required for recipients.")
+            if not population:
+                self.add_error("population", "This field is required for recipients.")
 
         return cleaned_data
 
@@ -66,6 +88,8 @@ class SignUpForm(UserCreationForm):
         user = super().save(commit=False)
         role = self.cleaned_data.get('role')
         location = self.cleaned_data.get('location') if role != 'donor' else None
+        phone_number = self.cleaned_data.get('phone_number') if role == 'recipient' else None
+        population = self.cleaned_data.get('population') if role == 'recipient' else None
 
         print(f"DEBUG: Saving user with role {role}")  # Debugging output
 
@@ -81,11 +105,89 @@ class SignUpForm(UserCreationForm):
 
             print(f"DEBUG: UserProfile created/updated with role: {profile.role}")
 
+            # Create Agent or Recipient instance based on role
             if role == 'agent':
                 Agent.objects.create(user=user, location=location)  # Save location in Agent model
+            elif role == 'recipient':
+                Recipient.objects.create(
+                    user=user,
+                    phone_number=phone_number,
+                    population=population,
+                    location=location
+                )
 
         return user
 
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2', 'role', 'location', 'phone_number', 'population')
+
+    def __init__(self, *args, **kwargs):
+        super(SignUpForm, self).__init__(*args, **kwargs)
+
+        self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'User Name'})
+        self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
+        self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm Password'})
+
+        # Remove default help text
+        for field_name in self.fields:
+            self.fields[field_name].help_text = None
+
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data.get("role")
+        location = cleaned_data.get("location")
+        phone_number = cleaned_data.get("phone_number")
+        population = cleaned_data.get("population")
+
+        # Ensure agents and recipients provide a location
+        if role != "donor" and not location:
+            self.add_error("location", "This field is required for agents and recipients.")
+
+        # Ensure recipients provide a phone number and population
+        if role == "recipient":
+            if not phone_number:
+                self.add_error("phone_number", "This field is required for recipients.")
+            if not population:
+                self.add_error("population", "This field is required for recipients.")
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        print("DEBUG: save() method called!") 
+        user = super().save(commit=False)
+        role = self.cleaned_data.get('role')
+        location = self.cleaned_data.get('location') if role != 'donor' else None
+        phone_number = self.cleaned_data.get('phone_number') if role == 'recipient' else None
+        population = self.cleaned_data.get('population') if role == 'recipient' else None
+
+        print(f"DEBUG: Saving user with role {role}")  # Debugging output
+
+        if commit:
+            user.save()
+            print(f"DEBUG: User saved with ID {user.id}")
+
+            # Ensure a unique UserProfile is created
+            profile, created = UserProfile.objects.update_or_create(
+                user=user,
+                defaults={'role': role, 'location': location}
+            )
+
+            print(f"DEBUG: UserProfile created/updated with role: {profile.role}")
+
+            # Create Agent or Recipient instance based on role
+            if role == 'agent':
+                Agent.objects.create(user=user, location=location)  # Save location in Agent model
+            elif role == 'recipient':
+                Recipient.objects.create(
+                    user=user,
+                    phone_number=phone_number,
+                    population=population,
+                    location=location
+                )
+
+        return user
         
 class DonationForm(forms.ModelForm):
     class Meta:

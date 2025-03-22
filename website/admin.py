@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile, Donation, Agent
+from .models import UserProfile, Donation, Agent, Recipient
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
@@ -35,6 +35,22 @@ class AgentAdmin(admin.ModelAdmin):
     list_display = ('user', 'location', 'phone')  # Fields to display in the list view
     search_fields = ('user__username', 'location', 'phone')  # Enable search functionality
     list_filter = ('location',)  # Add filtering by location
+
+class RecipientAdmin(admin.ModelAdmin):
+    list_display = ('user', 'phone_number', 'population', 'location')
+    search_fields = ('user__username', 'phone_number', 'location')
+    list_filter = ('population',)
+    readonly_fields = ('user',)
+
+    # Customize the form in the admin
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'phone_number', 'population', 'location')
+        }),
+    )
+
+# Register the Recipient model with the admin site
+admin.site.register(Recipient, RecipientAdmin)
     
 # Unregister the default User admin and register the custom one
 admin.site.unregister(User)

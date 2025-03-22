@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from .models import UserProfile, Agent
+from .models import UserProfile, Agent, Recipient
 
 #  Signal to create UserProfile automatically when a User is created
 
@@ -28,3 +28,11 @@ def create_agent(sender, instance, **kwargs):
     else:
         # If the role is changed from 'agent' to something else, delete the Agent record
         Agent.objects.filter(user=instance.user).delete()
+
+@receiver(post_save, sender=User)
+def create_recipient_profile(sender, instance, created, **kwargs):
+    """
+    Create a Recipient profile when a user with the role "recipient" is created.
+    """
+    if created and instance.role == "recipient":  # Assuming 'role' is a field in the User model
+        Recipient.objects.create(user=instance)
