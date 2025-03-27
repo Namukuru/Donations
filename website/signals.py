@@ -31,8 +31,10 @@ def create_agent(sender, instance, **kwargs):
 
 @receiver(post_save, sender=User)
 def create_recipient_profile(sender, instance, created, **kwargs):
-    """
-    Create a Recipient profile when a user with the role "recipient" is created.
-    """
-    if created and instance.role == "recipient":  # Assuming 'role' is a field in the User model
-        Recipient.objects.create(user=instance)
+    if created and instance.role == "recipient":
+        Recipient.objects.create(
+            user=instance,
+            location=instance.location,
+            population=getattr(instance, 'population', None),  # Ensure population is set
+            phone_number=getattr(instance, 'phone_number', None)  # Ensure phone_number is set
+        )

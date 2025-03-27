@@ -1,19 +1,18 @@
 /*The whole navebar template*/
 .navbar {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1000;
-    font-size: 20px;  
-    font-family: "Lora", serif; 
-    letter-spacing: 1px;
-    background-color: #003259ff;
-  }
-  
-  /*The CompassionNet Title*/
-  .navbar-brand {
-    font-size: 24px; 
-    font-weight: bold; 
-    letter-spacing: 2px; 
-  }
-  
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  font-size: 20px;  
+  font-family: "Lora", serif; 
+  letter-spacing: 1px;
+  background-color: #003259ff;
+}
+
+/*The CompassionNet Title*/
+.navbar-brand {
+  font-size: 24px; 
+  font-weight: bold; 
+  letter-spacing: 2px; 
+}

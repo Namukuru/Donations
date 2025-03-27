@@ -11,7 +11,7 @@
 </div>
 
 <!-- Monetary Donations Card -->
-{% if monetary_donations %}
+{% if monetary_page_obj %}
     <br>
     <h3>Monetary Donations</h3>
     <div class="card shadow-lg">
@@ -27,10 +27,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for donation in monetary_donations %}
+                        {% for donation in monetary_page_obj %}
                             <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td>{{ donation.amount }}</td>
+                                <td>{{ forloop.counter0|add:monetary_page_obj.start_index }}</td>
+                                <td>${{ donation.amount }}</td>
                                 <td>{{ donation.message }}</td>
                                 <td>{{ donation.created_at }}</td>
                             </tr>
@@ -40,13 +40,32 @@
             </div>
         </div>
     </div>
+    
+    <!-- Monetary Donations Pagination -->
+    <div class="pagination mt-3">
+        <span class="step-links">
+            {% if monetary_page_obj.has_previous %}
+                <a href="?monetary_page=1{% if in_kind_page_obj.number > 1 %}&in_kind_page={{ in_kind_page_obj.number }}{% endif %}" class="btn btn-sm btn-outline-primary">&laquo; first</a>
+                <a href="?monetary_page={{ monetary_page_obj.previous_page_number }}{% if in_kind_page_obj.number > 1 %}&in_kind_page={{ in_kind_page_obj.number }}{% endif %}" class="btn btn-sm btn-outline-primary">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ monetary_page_obj.number }} of {{ monetary_page_obj.paginator.num_pages }}
+            </span>
+
+            {% if monetary_page_obj.has_next %}
+                <a href="?monetary_page={{ monetary_page_obj.next_page_number }}{% if in_kind_page_obj.number > 1 %}&in_kind_page={{ in_kind_page_obj.number }}{% endif %}" class="btn btn-sm btn-outline-primary">next</a>
+                <a href="?monetary_page={{ monetary_page_obj.paginator.num_pages }}{% if in_kind_page_obj.number > 1 %}&in_kind_page={{ in_kind_page_obj.number }}{% endif %}" class="btn btn-sm btn-outline-primary">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
     <br>
 {% else %}
     <div class="alert alert-info">You don't have any monetary donations.</div>
 {% endif %}
 
 <!-- In-Kind Donations Section -->
-{% if in_kind_donations %}
+{% if in_kind_page_obj %}
     <br>
     <h3 class="text-dark">In-Kind Donations</h3>
     <div class="card shadow-lg">
@@ -66,9 +85,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for donation in in_kind_donations %}
+                        {% for donation in in_kind_page_obj %}
                             <tr>
-                                <td>{{ forloop.counter }}</td>
+                                <td>{{ forloop.counter0|add:in_kind_page_obj.start_index }}</td>
                                 <td>{{ donation.item_name }}</td>
                                 <td>{{ donation.item_quantity }}</td>
                                 <td>{{ donation.item_description }}</td>
@@ -82,6 +101,25 @@
                 </table>
             </div>
         </div>
+    </div>
+    
+    <!-- In-Kind Donations Pagination -->
+    <div class="pagination mt-3">
+        <span class="step-links">
+            {% if in_kind_page_obj.has_previous %}
+                <a href="?in_kind_page=1{% if monetary_page_obj.number > 1 %}&monetary_page={{ monetary_page_obj.number }}{% endif %}" class="btn btn-sm btn-outline-primary">&laquo; first</a>
+                <a href="?in_kind_page={{ in_kind_page_obj.previous_page_number }}{% if monetary_page_obj.number > 1 %}&monetary_page={{ monetary_page_obj.number }}{% endif %}" class="btn btn-sm btn-outline-primary">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ in_kind_page_obj.number }} of {{ in_kind_page_obj.paginator.num_pages }}
+            </span>
+
+            {% if in_kind_page_obj.has_next %}
+                <a href="?in_kind_page={{ in_kind_page_obj.next_page_number }}{% if monetary_page_obj.number > 1 %}&monetary_page={{ monetary_page_obj.number }}{% endif %}" class="btn btn-sm btn-outline-primary">next</a>
+                <a href="?in_kind_page={{ in_kind_page_obj.paginator.num_pages }}{% if monetary_page_obj.number > 1 %}&monetary_page={{ monetary_page_obj.number }}{% endif %}" class="btn btn-sm btn-outline-primary">last &raquo;</a>
+            {% endif %}
+        </span>
     </div>
     <br>
 {% else %}

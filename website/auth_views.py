@@ -36,8 +36,11 @@ def register_user(request):
             # Set the role and location in the User instance (temporarily)
             user.role = form.cleaned_data.get('role', 'donor')  # Default to 'donor' if role is not provided
             user.location = form.cleaned_data.get('location', '')  # Default to empty string if location is not provided
+            user.population = form.cleaned_data.get('population', 0)
+            user.phone_number = form.cleaned_data.get('phone_number', '')
     
             user.save()  # Save the User instance
+            print(f"DEBUG: User created with username: {user.username}, role: {user.role}, location: {user.location}, population: {user.population}, phone_number: {user.phone_number}")
             login(request, user)
             messages.success(request, "You have successfully registered! Welcome!")
             return redirect('home')

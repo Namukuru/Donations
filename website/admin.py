@@ -50,8 +50,6 @@ class RecipientAdmin(admin.ModelAdmin):
     )
 
 # Register the Recipient model with the admin site
-admin.site.register(Recipient, RecipientAdmin)
-    
-# Unregister the default User admin and register the custom one
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(Recipient, RecipientAdmin)

@@ -9,8 +9,6 @@ from .utils import get_address_from_coordinates, haversine
 from django.core.cache import cache
 
 def home(request):
-    userprofiles = UserProfile.objects.all()
-    
     # Check to see if user is logging in
     if request.method == 'POST':
         username = request.POST['username']
@@ -22,11 +20,10 @@ def home(request):
             messages.success(request, "Log in successful!")
             return redirect('login_user')
         else:
-            messages.success(request, "An error occurred. Please try again.")
+            messages.error(request, "An error occurred. Please try again.")
             return redirect('login_user')
     else:
-        return render(request, 'home.html', {'userprofiles':userprofiles})
-
+        return render(request, 'home.html')
 def donate(request):
     if request.method == 'POST':
         print(request.POST)
@@ -104,28 +101,43 @@ def edit_profile(request):
 
     return render(request, "edit_profile.html", {"form": form, "agent": agent})
 
+from django.core.paginator import Paginator
+
 def account(request):
-    # Fetch all donations for the logged-in user, optimizing related queries
+    # Fetch all donations for the logged-in user with optimizations
     donations = (
         Donation.objects.filter(donor=request.user)
-        .select_related("assigned_agent")  # Optimizes foreign key lookup
-        .only("id", "donation_type", "amount", "created_at", "item_name", "item_quantity", "item_description", "message", "pickup_location", "assigned_agent__username")  # Fetch only necessary fields
+        .select_related("assigned_agent")
+        .only("id", "donation_type", "amount", "created_at", "item_name", 
+              "item_quantity", "item_description", "message", "pickup_location", 
+              "assigned_agent__username")
+        .order_by('-created_at')  # Newest first
     )
 
-    # Separate monetary and in-kind donations efficiently
-    monetary_donations = [donation for donation in donations if donation.donation_type == "monetary"]
-    in_kind_donations = [donation for donation in donations if donation.donation_type == "in_kind"]
+    # Separate donations by type
+    monetary_donations = donations.filter(donation_type="monetary")
+    in_kind_donations = donations.filter(donation_type="in_kind")
 
-    # Convert pickup_location (coordinates) into an address efficiently
+    # Convert pickup locations to addresses
     for donation in in_kind_donations:
         donation.pickup_address = get_address_from_coordinates(donation.pickup_location) if donation.pickup_location else "No pickup location provided"
 
-    # Calculate the total monetary donations efficiently
-    total_donations = sum(donation.amount for donation in monetary_donations if donation.amount) or 0
+    # Paginate monetary donations
+    monetary_paginator = Paginator(monetary_donations, 10)  # Show 10 per page
+    monetary_page_number = request.GET.get('monetary_page')
+    monetary_page_obj = monetary_paginator.get_page(monetary_page_number)
+
+    # Paginate in-kind donations
+    in_kind_paginator = Paginator(in_kind_donations, 10)  # Show 10 per page
+    in_kind_page_number = request.GET.get('in_kind_page')
+    in_kind_page_obj = in_kind_paginator.get_page(in_kind_page_number)
+
+    # Calculate total donations
+    total_donations = sum(donation.amount for donation in monetary_page_obj.object_list if donation.amount) or 0
 
     context = {
-        "monetary_donations": monetary_donations,
-        "in_kind_donations": in_kind_donations,
+        "monetary_page_obj": monetary_page_obj,
+        "in_kind_page_obj": in_kind_page_obj,
         "total_donations": total_donations,
     }
     return render(request, "account.html", context)
