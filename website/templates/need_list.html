@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-list-check"></i> My Needs</h2>
+        <div>
+            <a href="{% url 'need_create' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Add New Need
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4 g-3">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Needs</h5>
+                    <p class="card-text display-5">{{ total_needs }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Fulfilled</h5>
+                    <p class="card-text display-5">{{ fulfilled_needs }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">Urgent</h5>
+                    <p class="card-text display-5">{{ urgent_needs }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {% if needs %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for need in needs %}
+                        <tr class="{% if need.is_fulfilled %}table-success{% elif need.priority == 4 %}table-danger{% elif need.priority == 3 %}table-warning{% endif %}">
+                            <td class="fw-bold">{{ need.name }}</td>
+                            <td>{{ need.get_category_display }}</td>
+                            <td>
+                                {{ need.quantity_received }} / {{ need.quantity_needed }} 
+                                {{ need.get_unit_display }}
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if need.priority == 4 %}danger{% elif need.priority == 3 %}warning{% else %}primary{% endif %}">
+                                    {{ need.get_priority_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if need.is_fulfilled %}
+                                    <span class="badge bg-success">Fulfilled</span>
+                                {% else %}
+                                    <div class="progress" style="height: 24px;">
+                                        <div class="progress-bar {% if need.priority == 4 %}bg-danger{% elif need.priority == 3 %}bg-warning{% endif %}" 
+                                             style="width: {{ need.fulfillment_percentage }}%">
+                                            {{ need.fulfillment_percentage }}%
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'need_update' need.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'need_delete' need.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                {% if is_paginated %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-list-check display-1 text-muted"></i>
+                <h3 class="mt-3">No needs recorded yet</h3>
+                <p class="text-muted">Start by adding your first need</p>
+                <a href="{% url 'need_create' %}" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-circle"></i> Record First Need
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
