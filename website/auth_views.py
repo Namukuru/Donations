@@ -2,30 +2,61 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import SignUpForm
-from .models import Agent
-
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 def login_user(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            messages.success(request, "Log in successful!")
-            return redirect('home')
-        else:
-            messages.success(request, "An error occurred. Please try again.")
-            return redirect('login_user')
-    else:
-        return render(request, 'loginUser.html', {})
-
+        try:
+            # Basic validation
+            username = request.POST.get('username', '').strip()
+            password = request.POST.get('password', '').strip()
+            
+            if not username or not password:
+                raise ValidationError(_("Please provide both username and password."))
+            
+            # Rate limiting check could be added here
+            
+            user = authenticate(request, username=username, password=password)
+            
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    messages.success(request, _("You have successfully logged in!"))
+                    
+                    # Redirect to 'next' parameter if it exists and is safe
+                    next_url = request.POST.get('next') or request.GET.get('next')
+                    if next_url and not next_url.startswith(('http:', 'https:')):
+                        return redirect(next_url)
+                    return redirect('home')
+                else:
+                    messages.error(request, _("This account is inactive."))
+            else:
+                # Generic error message to avoid revealing whether username exists
+                messages.error(request, _("Invalid login credentials. Please try again."))
+                
+        except ValidationError as e:
+            messages.error(request, e.message)
+        except Exception as e:
+            # Log the actual error for admin review
+            # logger.error(f"Login error: {str(e)}")
+            messages.error(request, _("An unexpected error occurred. Please try again later."))
+        
+        # Return to login page with preserved username (but not password)
+        return render(request, 'loginUser.html', {
+            'username': username,
+            'next': request.POST.get('next', '')
+        })
+    
+    # GET request - show login form
+    return render(request, 'loginUser.html', {
+        'next': request.GET.get('next', '')
+    })
 
 def logout_user(request):
     logout(request)
     messages.success(request, "Log out successful!")
     return redirect('home')
-
 
 def register_user(request):
     if request.method == 'POST':
