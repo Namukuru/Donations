@@ -18,4 +18,8 @@ urlpatterns = [
     path("assign-agent/", views.assign_agent, name="assign_agent"),
     path('unassign_agent/', views.unassign_agent, name='unassign_agent'),
     path('admin-dashboard/', views.admin_dashboard, name="admin_dashboard"),
+    path('needs/', views.need_list, name='need_list'),
+    path('needs/create/', views.need_create, name='need_create'),
+    path('needs/<int:pk>/update/', views.need_update, name='need_update'),
+    path('needs/<int:pk>/delete/', views.need_delete, name='need_delete'),
 ]

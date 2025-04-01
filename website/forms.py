@@ -1,7 +1,8 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
-from .models import Donation, Agent, UserProfile, Recipient
+from .models import Donation, Agent, UserProfile, Recipient, Need
+
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(
         label="Email",
@@ -232,3 +233,22 @@ class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["email"]  # Only allow updating email
+
+class NeedForm(forms.ModelForm):
+    class Meta:
+        model = Need
+        fields = ['category', 'name', 'description', 'quantity_needed', 'unit', 'priority']
+        widgets = {
+            'category': forms.Select(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'quantity_needed': forms.NumberInput(attrs={'class': 'form-control'}),
+            'unit': forms.Select(attrs={'class': 'form-control'}),
+            'priority': forms.Select(attrs={'class': 'form-control'}),
+        }
+    
+    def clean_quantity_needed(self):
+        quantity_needed = self.cleaned_data.get('quantity_needed')
+        if quantity_needed <= 0:
+            raise forms.ValidationError("Quantity needed must be greater than zero.")
+        return quantity_needed
