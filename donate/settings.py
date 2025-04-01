@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'website',
     'silk',
+    'crispy_forms',
+    'crispy_bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -49,6 +51,8 @@ ROOT_URLCONF = 'donate.urls'
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 TEMPLATES = [
     {
