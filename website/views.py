@@ -7,6 +7,7 @@ from .forms import  DonationForm, ProfileUpdateForm
 from .models import UserProfile, Donation, Agent, Recipient
 from .utils import get_address_from_coordinates, haversine
 from django.core.cache import cache
+from django.core.paginator import Paginator
 
 def home(request):
     # Check to see if user is logging in
@@ -101,7 +102,6 @@ def edit_profile(request):
 
     return render(request, "edit_profile.html", {"form": form, "agent": agent})
 
-from django.core.paginator import Paginator
 
 def account(request):
     # Fetch all donations for the logged-in user with optimizations
@@ -345,6 +345,6 @@ def admin_dashboard(request):
     context = {
         "unassigned_donations": unassigned_donations_data,
         "assigned_donations": assigned_donations_data,
-        "agents": Agent.objects.all().only('id', 'username'),  # Optimize agent query
+        "agents": Agent.objects.select_related('user').only('id', 'user__username'),
     }
     return render(request, "admin.html", context)

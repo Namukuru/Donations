@@ -43,7 +43,7 @@
                     <input type="hidden" name="job_id" value="{{ job.id }}">
                     <select name="agent_id" class="form-select">
                       {% for agent in agents %}
-                        <option value="{{ agent.id }}">{{ agent.user.username }}</option>
+                        <option value="{{ agent.id }}">{{agent.user.username }}</option>
                       {% endfor %}
                     </select>
                 </td>
