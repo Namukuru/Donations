@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .forms import SignUpForm
+from ..forms import SignUpForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 

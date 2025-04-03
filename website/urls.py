@@ -1,25 +1,42 @@
 from django.urls import path
-from . import views
-from . import auth_views
+from .views.auth_views import login_user, logout_user, register_user
+from .views.donation_views import donate, account
+from .views.need_views import need_list, need_create, need_update, need_delete
+from .views.profile_views import profile, edit_profile
+from .views.admin_views import admin_dashboard,report
+from .views.general_views import home,about,jobs, assign_agent, unassign_agent,mark_completed
 
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('login/', auth_views.login_user, name='login_user'),
-    path('logout/', auth_views.logout_user, name='logout_user'),
-    path('register/', auth_views.register_user, name='register'),
-    path('donate/', views.donate, name='donate'),
-    path('account/', views.account, name='account'),
-    path('about/', views.about, name='about'),
-    path('profile/', views.profile, name='profile'),
-    path("profile/edit/", views.edit_profile, name="edit_profile"),
-    path('report/', views.report, name='report'),
-    path('jobs/', views.jobs, name='jobs'),
-    path('mark_completed/<int:donation_id>/', views.mark_completed, name='mark_completed'),
-    path("assign-agent/", views.assign_agent, name="assign_agent"),
-    path('unassign_agent/', views.unassign_agent, name='unassign_agent'),
-    path('admin-dashboard/', views.admin_dashboard, name="admin_dashboard"),
-    path('needs/', views.need_list, name='need_list'),
-    path('needs/create/', views.need_create, name='need_create'),
-    path('needs/<int:pk>/update/', views.need_update, name='need_update'),
-    path('needs/<int:pk>/delete/', views.need_delete, name='need_delete'),
+    # Authentication
+    path("login/", login_user, name="login_user"),
+    path("logout/", logout_user, name="logout_user"),
+    path("register/", register_user, name="register"),
+
+    # General Pages
+    path("", home, name="home"),
+    path("about/", about, name="about"),
+    path('account/', account, name='account'),
+     path('report/', report, name='report'),
+
+    # Donations
+    path("donate/", donate, name="donate"),
+    path("mark_completed/<int:donation_id>/", mark_completed, name="mark_completed"),
+
+    # Profile & User Management
+    path("profile/", profile, name="profile"),
+    path("profile/edit/", edit_profile, name="edit_profile"),
+
+    # Jobs & Agent Management
+    path("jobs/", jobs, name="jobs"),
+    path("assign-agent/", assign_agent, name="assign_agent"),
+    path("unassign-agent/", unassign_agent, name="unassign_agent"),
+
+    # Admin Dashboard
+    path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
+
+    # Needs Management
+    path("needs/", need_list, name="need_list"),
+    path("needs/create/", need_create, name="need_create"),
+    path("needs/<int:pk>/update/", need_update, name="need_update"),
+    path("needs/<int:pk>/delete/", need_delete, name="need_delete"),
 ]
