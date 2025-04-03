@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils import timezone
+from django.db.models import Q, F, Sum, Case, When,Count
 from django.contrib.auth import get_user_model
-from django.db.models import Q, F, Sum
-from geopy.distance import geodesic
+from django.urls import reverse
+from math import radians, sin, cos, sqrt, atan2
+
+User = get_user_model()
 
 # Create your models here.
 ROLE_CHOICES = [
@@ -45,6 +46,7 @@ class Agent(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     location = models.CharField(max_length=255, blank=True, null=True) 
     phone = models.CharField(max_length=15)
+    is_available = models.BooleanField(default=True)
 
     def __str__(self):
         return f"Agent: {self.user.username}"
@@ -71,7 +73,7 @@ class Recipient(models.Model):
         verbose_name_plural = "Donation Recipients"
     
     def __str__(self):
-        return f"{self.user.get_full_name() or self.user.username} (Population: {self.population})"
+        return f"{self.user.get_full_name() or self.user.username}"
     
     def update_priority_score(self):
         """Calculate and update the priority score automatically"""
@@ -124,31 +126,37 @@ class Donation(models.Model):
         ('partially_fulfilled', 'Partially Fulfilled')
     ]
 
+    # Core Fields
     donation_type = models.CharField(max_length=20, choices=DONATION_TYPES)
     donor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='donations_made')
     date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     message = models.TextField(blank=True, null=True)
-
-    # Monetary Donation Fields
+    
+    # Monetary Fields
     amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     currency = models.CharField(max_length=3, default='USD', blank=True)
 
-    # In-Kind Donation Fields
+    # In-Kind Fields
     item_name = models.CharField(max_length=255, blank=True, null=True, default="Money")
     item_quantity = models.PositiveIntegerField(blank=True, null=True, default=1)
     item_description = models.TextField(blank=True, null=True)
-    item_condition = models.CharField(max_length=50, blank=True, null=True, 
-                                    choices=[('new', 'New'), ('used', 'Used'), ('refurbished', 'Refurbished')])
+    item_condition = models.CharField(
+        max_length=50, 
+        blank=True, 
+        null=True,
+        choices=[('new', 'New'), ('used', 'Used'), ('refurbished', 'Refurbished')]
+    )
 
-    # Pickup/Delivery Details
+    # Location Fields
     pickup_location = models.CharField(max_length=255, blank=True, null=True)
     pickup_latitude = models.FloatField(blank=True, null=True)
     pickup_longitude = models.FloatField(blank=True, null=True)
     preferred_pickup_time = models.DateTimeField(blank=True, null=True)
-    
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    # Assignment Fields
     assigned_agent = models.ForeignKey(
         User, 
         on_delete=models.SET_NULL, 
@@ -156,21 +164,19 @@ class Donation(models.Model):
         blank=True, 
         related_name='assigned_donations'
     )
-    
-    # Recipient Assignment
     assigned_recipient = models.ForeignKey(
         'Recipient',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='received_donations',
-        verbose_name="Assigned Recipient"
+        related_name='received_donations'
     )
     assignment_date = models.DateTimeField(null=True, blank=True)
+
+    # Fulfillment Fields
     fulfillment_notes = models.TextField(blank=True, null=True)
     fulfillment_date = models.DateTimeField(null=True, blank=True)
-    fulfillment_percentage = models.PositiveIntegerField(default=0, 
-    help_text="Percentage of donation actually fulfilled")
+    fulfillment_percentage = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['-created_at']
@@ -181,164 +187,183 @@ class Donation(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.get_donation_type_display()} ({self.item_quantity or 0}x {self.item_name}) - {self.donor.username if self.donor else 'Anonymous'}"
+        return f"{self.get_donation_type_display()} ({self.item_quantity}x {self.item_name})"
+
+    def get_absolute_url(self):
+        return reverse('donation_detail', args=[str(self.id)])
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
         super().save(*args, **kwargs)
 
-        # Geocode pickup location if provided
-        if is_new and self.pickup_location and not (self.pickup_latitude and self.pickup_longitude):
-            self.geocode_pickup_location()
+        if is_new:
+            self._process_new_donation()
 
-        # Assign agent for in-kind donations
-        if is_new and self.donation_type == "in_kind" and self.pickup_location and not self.assigned_agent:
-            self.assign_optimal_agent()
-
-        # Assign recipient if not already assigned
-        if is_new and not self.assigned_recipient:
+    def _process_new_donation(self):
+        """Handle new donation processing"""
+        if self.donation_type == "in_kind":
+            if not self.assigned_agent:
+                self._assign_agent()
+        
+        if not self.assigned_recipient:
             self.assign_to_recipient()
 
-    def geocode_pickup_location(self):
-        """Convert pickup location to coordinates"""
-        # Implementation would use geopy or similar service
-        # This is a placeholder for actual geocoding logic
-        pass
-
-    def assign_optimal_agent(self):
-        """Find the best available agent for this donation"""
+    def _assign_agent(self):
+        """Assign the most appropriate agent"""
         from .models import Agent
         
-        # Basic implementation - can be enhanced with location-based assignment
-        available_agent = Agent.objects.filter(
+        agents = Agent.objects.filter(
             is_available=True,
             user__is_active=True
-        ).order_by(
-            '-current_load'  # Assign to least busy agent
-        ).first()
-        
-        if available_agent:
-            self.assigned_agent = available_agent.user
+        ).annotate(
+            current_load=Count('user__assigned_donations', 
+                            filter=Q(user__assigned_donations__status='in_progress'))
+        ).order_by('current_load')
+
+        if agents.exists():
+            self.assigned_agent = agents.first().user
             self.status = 'in_progress'
             self.save(update_fields=['assigned_agent', 'status'])
 
     def assign_to_recipient(self, force=False):
-        """Enhanced matching algorithm with location consideration"""
+        """Main allocation method"""
         if self.assigned_recipient and not force:
             return False
 
-        recipient = None
-        
         if self.donation_type == "monetary":
-            recipient = self._assign_monetary_donation()
-        else:
-            recipient = self._assign_in_kind_donation()
+            return self._assign_monetary()
+        return self._assign_in_kind()
+
+    def _assign_monetary(self):
+        """Allocate monetary donations"""
+        from .models import Recipient
+
+        recipient = Recipient.objects.annotate(
+            financial_need=Sum(
+                Case(
+                    When(needs__category__in=['food', 'shelter', 'medical'],
+                        then=F('needs__quantity_needed')-F('needs__quantity_received')),
+                    default=0,
+                    output_field=models.FloatField()
+                )
+            )
+        ).filter(
+            financial_need__gt=0
+        ).order_by(
+            '-priority_score',
+            '-financial_need'
+        ).first()
 
         if recipient:
             self._finalize_assignment(recipient)
             return True
         return False
 
-    def _assign_in_kind_donation(self):
-        """Match in-kind donations with recipients' needs"""
+    def _assign_in_kind(self):
+        """Allocate in-kind donations"""
         from .models import Need
-        
-        # First try exact name matches
-        matching_needs = Need.objects.filter(
-            Q(name__iexact=self.item_name) & 
-            Q(is_fulfilled=False) &
-            Q(quantity_received__lt=F('quantity_needed'))
+
+        # Try exact name match first
+        needs = self._find_matching_needs(exact_match=True)
+        if not needs.exists():
+            # Fall back to category match
+            needs = self._find_matching_needs(exact_match=False)
+
+        # Apply location filter if available
+        if self.pickup_latitude and self.pickup_longitude:
+            needs = [n for n in needs if self._is_within_distance(n.recipient)]
+
+        # Assign to highest priority need
+        for need in needs:
+            if need.remaining_need > 0:
+                self._finalize_assignment(need.recipient)
+                self._update_need_fulfillment(need)
+                return True
+        return False
+
+    def _find_matching_needs(self, exact_match=True):
+        """Find needs matching the donation item"""
+        from .models import Need
+
+        filter_field = 'name__iexact' if exact_match else 'category__iexact'
+        return Need.objects.filter(
+            **{filter_field: self.item_name},
+            is_fulfilled=False,
+            quantity_received__lt=F('quantity_needed')
         ).select_related('recipient').order_by(
             '-recipient__priority_score',
             '-priority'
         )
-        
-        # If no exact matches, try category matches
-        if not matching_needs.exists():
-            matching_needs = Need.objects.filter(
-                Q(category__iexact=self.item_name) & 
-                Q(is_fulfilled=False) &
-                Q(quantity_received__lt=F('quantity_needed'))
-            ).select_related('recipient').order_by(
-                '-recipient__priority_score',
-                '-priority'
-            )
-        
-        # Consider location if available
-        if self.pickup_latitude and self.pickup_longitude:
-            matching_needs = [
-                need for need in matching_needs 
-                if self._is_within_distance(need.recipient)
-            ]
-        
-        # Find the best match
-        for need in matching_needs:
-            if need.remaining_need > 0:
-                return need.recipient
-        return None
 
     def _is_within_distance(self, recipient, max_km=50):
-        """Check if recipient is within acceptable distance"""
+        """Check if recipient is within acceptable distance using Haversine formula"""
         if not (recipient.location_latitude and recipient.location_longitude):
             return False
             
-        donor_coords = (self.pickup_latitude, self.pickup_longitude)
-        recipient_coords = (recipient.location_latitude, recipient.location_longitude)
-        
-        return geodesic(donor_coords, recipient_coords).km <= max_km
+        if not (self.pickup_latitude and self.pickup_longitude):
+            return False
+            
+        try:
+            # Convert coordinates from degrees to radians
+            lat1 = radians(float(self.pickup_latitude))
+            lon1 = radians(float(self.pickup_longitude))
+            lat2 = radians(float(recipient.location_latitude))
+            lon2 = radians(float(recipient.location_longitude))
+
+            # Haversine formula
+            dlon = lon2 - lon1
+            dlat = lat2 - lat1
+            a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+            c = 2 * atan2(sqrt(a), sqrt(1 - a))
+            
+            # Earth radius in kilometers
+            EARTH_RADIUS = 6371
+            distance = EARTH_RADIUS * c
+            
+            return distance <= max_km
+        except (TypeError, ValueError):
+            return False
 
     def _finalize_assignment(self, recipient):
-        """Complete the assignment process"""
+        """Complete assignment process"""
         self.assigned_recipient = recipient
         self.assignment_date = timezone.now()
         self.status = 'in_progress'
         self.save()
         
-        # Update recipient records
+        # Update recipient
         recipient.last_received = timezone.now()
         recipient.save()
         recipient.update_priority_score()
-        
-        # Update specific need if in-kind
-        if self.donation_type == "in_kind":
-            self._update_recipient_needs(recipient)
 
-    def _update_recipient_needs(self, recipient):
-        """Update the recipient's needs based on this donation"""
-        from .models import Need
+    def _update_need_fulfillment(self, need):
+        """Update need status after assignment"""
+        need.quantity_received = min(
+            need.quantity_needed,
+            need.quantity_received + (self.item_quantity or 1)
+        )
+        need.save()
         
-        try:
-            need = recipient.needs.get(
-                Q(name__iexact=self.item_name) | 
-                Q(category__iexact=self.item_name),
-                is_fulfilled=False
-            )
-            new_received = need.quantity_received + (self.item_quantity or 1)
-            need.quantity_received = min(need.quantity_needed, new_received)
+        # Update donation fulfillment
+        self.fulfillment_percentage = int((need.quantity_received / need.quantity_needed) * 100)
+        if need.quantity_received < need.quantity_needed:
+            self.status = 'partially_fulfilled'
+        else:
+            need.is_fulfilled = True
             need.save()
-            
-            # Calculate fulfillment percentage
-            self.fulfillment_percentage = int((need.quantity_received / need.quantity_needed) * 100)
-            if need.quantity_received < need.quantity_needed:
-                self.status = 'partially_fulfilled'
-            
-            need.update_fulfillment_status()
-            self.save()
-        except (Need.DoesNotExist, Need.MultipleObjectsReturned):
-            pass
+        self.save()
 
-    def complete_donation(self, notes=None, fulfillment_percentage=100):
-        """Mark donation as completed with optional notes"""
+    def complete(self, notes=None):
+        """Mark donation as completed"""
         self.status = 'completed'
         self.fulfillment_notes = notes
         self.fulfillment_date = timezone.now()
-        self.fulfillment_percentage = fulfillment_percentage
         self.save()
         
         if self.assigned_recipient:
             self.assigned_recipient.update_priority_score()
 
-    def cancel_donation(self, reason=None):
+    def cancel(self, reason=None):
         """Cancel the donation"""
         self.status = 'canceled'
         self.fulfillment_notes = reason
@@ -346,30 +371,21 @@ class Donation(models.Model):
 
     @property
     def is_assigned(self):
-        """Check if fully assigned"""
         return bool(self.assigned_agent and self.assigned_recipient)
 
     @property
     def matching_criteria(self):
-        """Detailed matching criteria"""
         return {
-            'item_name': self.item_name,
-            'item_type': self.donation_type,
+            'type': self.donation_type,
+            'item': self.item_name,
+            'quantity': self.item_quantity,
             'location': {
-                'text': self.pickup_location,
+                'address': self.pickup_location,
                 'coordinates': (self.pickup_latitude, self.pickup_longitude)
             },
-            'quantity': self.item_quantity,
-            'time_constraints': self.preferred_pickup_time,
-            'condition': self.item_condition
+            'time': self.preferred_pickup_time
         }
-
-    @property
-    def fulfillment_status(self):
-        """Human-readable fulfillment status"""
-        if self.status == 'partially_fulfilled':
-            return f"Partially Fulfilled ({self.fulfillment_percentage}%)"
-        return self.get_status_display()       
+        
 
 class Need(models.Model):
     CATEGORY_CHOICES = [
@@ -460,3 +476,4 @@ class Need(models.Model):
         elif self.remaining_need > 0 and self.is_fulfilled:
             self.is_fulfilled = False
             self.save()
+            
