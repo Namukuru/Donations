@@ -21,10 +21,32 @@
             <form method="post">
                 {% csrf_token %}
                 
+                <!-- Display username (readonly) -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Username:</strong></label>
+                    <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                    <small class="text-muted">Username cannot be changed</small>
+                </div>
+
                 <!-- Email Update -->
                 <div class="mb-3">
                     <label class="form-label"><strong>Email:</strong></label>
                     {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-danger">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- First Name and Last Name -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><strong>First Name:</strong></label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"><strong>Last Name:</strong></label>
+                        {{ form.last_name }}
+                    </div>
                 </div>
 
                 {% if agent %}
@@ -37,30 +59,24 @@
                 <!-- Location Update -->
                 <div class="mb-3">
                     <label class="form-label"><strong>Location:</strong></label>
-                    <!-- Dropdown to choose current or another location -->
                     <select id="location-select" class="form-select" name="location_option">
                         <option value="current" selected>Use Current Location</option>
                         <option value="another">Use Another Location</option>
                     </select>
-
-                    <!-- Location input -->
                     <input type="text" id="location-input" name="location" class="form-control mt-2" value="{{ agent.location }}" disabled>
-
-                    <!-- Map container (hidden by default) -->
                     <div id="map" style="height: 400px; width: 100%; display: none;"></div>
                 </div>
                 {% endif %}
 
-                <button type="submit" class="btn btn-primary w-100">Save Changes</button>
-                <a href="{% url 'profile' %}" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a href="{% url 'profile' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Include Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<!-- Include custom JS for the map -->
 <script src="{% static 'js/edit_profile.js' %}"></script>
-
 {% endblock %}

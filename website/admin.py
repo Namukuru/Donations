@@ -27,7 +27,7 @@ class CustomUserAdmin(UserAdmin):
     
 @admin.register(Donation)
 class DonationAdmin(admin.ModelAdmin):
-    list_display = ('id','donation_type_display','donor_info','amount_display','item_info','recipient_info','status_display','created_at','fulfillment_display')
+    list_display = ('id','donation_type_display','donor_info','amount_display','item_info','recipient_info','assigned_agent','status_display','created_at','fulfillment_display')
     list_filter = ('status','donation_type','created_at','assigned_recipient','assigned_agent')
     search_fields = ('donor__username','donor__first_name','donor__last_name','item_name','assigned_recipient__user__username','assigned_agent__username')
     ordering = ('-created_at',)
@@ -114,12 +114,9 @@ class DonationAdmin(admin.ModelAdmin):
     
     def status_display(self, obj):
         color = {
-            'pending': 'orange',
-            'in_progress': 'blue',
             'completed': 'green',
-            'canceled': 'red',
-            'partially_fulfilled': 'purple'
-        }.get(obj.status, 'black')
+            'partially_fulfilled': 'orange'
+        }.get(obj.status, 'white')
         return format_html(
             '<span style="color: {};">{}</span>',
             color,

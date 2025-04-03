@@ -1,4 +1,4 @@
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
 from django import forms
 from .models import Donation, Agent, UserProfile, Recipient, Need
@@ -364,10 +364,19 @@ class DonationForm(forms.ModelForm):
             instance.save()
         
         return instance  
-class ProfileUpdateForm(forms.ModelForm):
+
+
+class ProfileUpdateForm(UserChangeForm):
     class Meta:
         model = User
-        fields = ["email"]  # Only allow updating email
+        fields = ('email', 'first_name', 'last_name')
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Remove password field and help text
+        self.fields.pop('password')
+        self.fields['email'].required = True
+
 
 class NeedForm(forms.ModelForm):
     class Meta:
