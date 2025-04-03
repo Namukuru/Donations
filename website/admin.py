@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from .models import UserProfile, Donation, Agent, Recipient,Need
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils import timezone
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
@@ -26,11 +27,128 @@ class CustomUserAdmin(UserAdmin):
     
 @admin.register(Donation)
 class DonationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'donor', 'amount','message','pickup_location', 'created_at','item_name','item_description','item_quantity','assigned_agent')  # Columns displayed in the list view
-    list_filter = ('created_at',)  # Adds a filter on the right side
-    search_fields = ('donor_name',)  # Enables search by donor name
-    ordering = ('-created_at',)  # Orders by most recent donations first
-    readonly_fields = ('created_at',)  # Prevents editing the timestamp
+    list_display = ('id','donation_type_display','donor_info','amount_display','item_info','recipient_info','status_display','created_at','fulfillment_display')
+    list_filter = ('status','donation_type','created_at','assigned_recipient','assigned_agent')
+    search_fields = ('donor__username','donor__first_name','donor__last_name','item_name','assigned_recipient__user__username','assigned_agent__username')
+    ordering = ('-created_at',)
+    readonly_fields = ('created_at','updated_at','assignment_date','fulfillment_date','fulfillment_percentage')
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('donation_type','donor','status','message')       
+        }),
+        ('Monetary Details', {
+            'fields': (
+                'amount',
+                'currency'
+            ),
+            'classes': ('collapse',)
+        }),
+        ('In-Kind Details', {
+            'fields': (
+                'item_name',
+                'item_quantity',
+                'item_description',
+                'item_condition'
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Location Information', {
+            'fields': (
+                'pickup_location',
+                'pickup_latitude',
+                'pickup_longitude',
+                'preferred_pickup_time'
+            )
+        }),
+        ('Assignment', {
+            'fields': (
+                'assigned_agent',
+                'assigned_recipient',
+                'assignment_date'
+            )
+        }),
+        ('Fulfillment', {
+            'fields': (
+                'fulfillment_notes',
+                'fulfillment_date',
+                'fulfillment_percentage'
+            )
+        }),
+        ('Timestamps', {
+            'fields': (
+                'created_at',
+                'updated_at'
+            ),
+            'classes': ('collapse',)
+        })
+    )
+    
+    # Custom display methods
+    def donation_type_display(self, obj):
+        return obj.get_donation_type_display()
+    donation_type_display.short_description = 'Type'
+    
+    def donor_info(self, obj):
+        if obj.donor:
+            return f"{obj.donor.get_full_name() or obj.donor.username}"
+        return "Anonymous"
+    donor_info.short_description = 'Donor'
+    
+    def amount_display(self, obj):
+        if obj.donation_type == "monetary" and obj.amount:
+            return f"{obj.currency} {obj.amount}"
+        return "-"
+    amount_display.short_description = 'Amount'
+    
+    def item_info(self, obj):
+        if obj.donation_type == "in_kind":
+            return f"{obj.item_quantity}x {obj.item_name}"
+        return "-"
+    item_info.short_description = 'Item'
+    
+    def recipient_info(self, obj):
+        if obj.assigned_recipient:
+            return obj.assigned_recipient.user.get_full_name() or obj.assigned_recipient.user.username
+        return "Not assigned"
+    recipient_info.short_description = 'Recipient'
+    
+    def status_display(self, obj):
+        color = {
+            'pending': 'orange',
+            'in_progress': 'blue',
+            'completed': 'green',
+            'canceled': 'red',
+            'partially_fulfilled': 'purple'
+        }.get(obj.status, 'black')
+        return format_html(
+            '<span style="color: {};">{}</span>',
+            color,
+            obj.get_status_display()
+        )
+    status_display.short_description = 'Status'
+    status_display.admin_order_field = 'status'
+    
+    def fulfillment_display(self, obj):
+        if obj.status in ['completed', 'partially_fulfilled']:
+            return f"{obj.fulfillment_percentage}%"
+        return "-"
+    fulfillment_display.short_description = 'Fulfillment'
+    
+    # Custom actions
+    actions = ['mark_as_completed', 'reassign_donations']
+    
+    def mark_as_completed(self, request, queryset):
+        updated = queryset.update(status='completed', fulfillment_date=timezone.now())
+        self.message_user(request, f"{updated} donations marked as completed")
+    mark_as_completed.short_description = "Mark selected as completed"
+    
+    def reassign_donations(self, request, queryset):
+        count = 0
+        for donation in queryset:
+            if donation.assign_to_recipient(force=True):
+                count += 1
+        self.message_user(request, f"Reassigned {count} donations to recipients")
+    reassign_donations.short_description = "Reassign to recipients"
     
 @admin.register(Agent)
 class AgentAdmin(admin.ModelAdmin):

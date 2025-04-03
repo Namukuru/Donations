@@ -191,44 +191,179 @@ class SignUpForm(UserCreationForm):
         return user
         
 class DonationForm(forms.ModelForm):
+    # Common fields
+    donation_type = forms.ChoiceField(
+        choices=Donation.DONATION_TYPES,
+        widget=forms.RadioSelect,
+        initial='monetary'  # Default to monetary
+    )
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={'placeholder': 'Any additional information...', 'rows': 3}),
+        required=False
+    )
+    
+    # Monetary donation fields
+    amount = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        required=False,
+        widget=forms.NumberInput(attrs={'placeholder': '0.00'})
+    )
+    currency = forms.ChoiceField(
+        choices=[('USD', 'USD'), ('EUR', 'EUR'), ('GBP', 'GBP')],  # Add more as needed
+        initial='USD',
+        required=False
+    )
+    
+    # In-kind donation fields
+    item_name = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Item name'})
+    )
+    item_category = forms.ChoiceField(
+        choices=Need.CATEGORY_CHOICES,
+        required=False,
+        help_text="General category of the item"
+    )
+    item_quantity = forms.IntegerField(
+        min_value=1,
+        initial=1,
+        required=False,
+        widget=forms.NumberInput(attrs={'placeholder': '1'})
+    )
+    item_description = forms.CharField(
+        widget=forms.Textarea(attrs={'placeholder': 'Item description...', 'rows': 3}),
+        required=False
+    )
+    item_condition = forms.ChoiceField(
+        choices=[
+            ('new', 'New'), 
+            ('used', 'Used'), 
+            ('refurbished', 'Refurbished')
+        ],
+        required=False
+    )
+    
+    # Location fields (primarily for in-kind donations)
+    pickup_location = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Full address for pickup'})
+    )
+    preferred_pickup_time = forms.DateTimeField(
+        required=False,
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        help_text="Preferred date/time for pickup"
+    )
+
     class Meta:
         model = Donation
-        fields = ['donation_type', 'amount', 'item_name', 'item_quantity', 'item_description', 'pickup_location', 'message']
-        exclude = [] 
-        widgets = {
-            'message': forms.Textarea(attrs={'placeholder': 'Make a comment ...', 'rows': 3}),
-        }
+        fields = [
+            'donation_type',
+            'message',
+            # Monetary fields
+            'amount', 'currency',
+            # In-kind fields
+            'item_name', 'item_category', 'item_quantity',
+            'item_description', 'item_condition',
+            # Location fields
+            'pickup_location', 'preferred_pickup_time'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set initial values based on donation type if instance exists
+        if self.instance and self.instance.pk:
+            if self.instance.donation_type == 'monetary':
+                self.fields['amount'].initial = self.instance.amount
+                self.fields['currency'].initial = self.instance.currency
+            elif self.instance.donation_type == 'in_kind':
+                self.fields['item_name'].initial = self.instance.item_name
+                self.fields['item_quantity'].initial = self.instance.item_quantity
+                self.fields['item_description'].initial = self.instance.item_description
+                self.fields['item_condition'].initial = self.instance.item_condition
+                self.fields['pickup_location'].initial = self.instance.pickup_location
+                self.fields['preferred_pickup_time'].initial = self.instance.preferred_pickup_time
+
+        # Add CSS classes for JavaScript handling
+        self.fields['donation_type'].widget.attrs.update({'class': 'donation-type-toggle'})
+        self.fields['amount'].widget.attrs.update({'class': 'monetary-field'})
+        self.fields['currency'].widget.attrs.update({'class': 'monetary-field'})
+        
+        in_kind_fields = ['item_name', 'item_category', 'item_quantity', 
+                         'item_description', 'item_condition',
+                         'pickup_location', 'preferred_pickup_time']
+        for field in in_kind_fields:
+            self.fields[field].widget.attrs.update({'class': 'in-kind-field'})
 
     def clean(self):
         cleaned_data = super().clean()
         donation_type = cleaned_data.get("donation_type")
-        amount = cleaned_data.get("amount")
-        item_name = cleaned_data.get("item_name")
-        item_quantity = cleaned_data.get("item_quantity")
-        message = cleaned_data.get("message")
-
+        
         if donation_type == "monetary":
-            if not amount:
+            # Validate monetary fields
+            if not cleaned_data.get("amount"):
                 self.add_error('amount', "Amount is required for monetary donations.")
-            # Clear in-kind fields for monetary donations
-            cleaned_data["item_name"] = None
-            cleaned_data["item_quantity"] = None
-            cleaned_data["item_description"] = None
-            cleaned_data["pickup_location"] = None
-            cleaned_data["status"] = None 
             
+            # Clear in-kind fields
+            for field in ['item_name', 'item_category', 'item_quantity', 
+                         'item_description', 'item_condition', 'pickup_location', 
+                         'preferred_pickup_time']:
+                cleaned_data[field] = None
+        
         elif donation_type == "in_kind":
-            if not item_name:
+            # Validate in-kind fields
+            if not cleaned_data.get("item_name"):
                 self.add_error('item_name', "Item name is required for in-kind donations.")
-            if not item_quantity:
+            if not cleaned_data.get("item_quantity"):
                 self.add_error('item_quantity', "Quantity is required for in-kind donations.")
-            if not message: 
-                self.add_error('message', "Message is required for in-kind donations.")
-            # Clear monetary field for in-kind donations
+            if not cleaned_data.get("pickup_location"):
+                self.add_error('pickup_location', "Pickup location is required for in-kind donations.")
+            
+            # Set default category if not provided
+            if not cleaned_data.get("item_category"):
+                cleaned_data['item_category'] = 'other'
+            
+            # Clear monetary fields
             cleaned_data["amount"] = None
-
+            cleaned_data["currency"] = 'USD'
+        
         return cleaned_data
-    
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        if instance.donation_type == "monetary":
+            # Set monetary fields
+            instance.amount = self.cleaned_data['amount']
+            instance.currency = self.cleaned_data['currency']
+            # Clear in-kind fields
+            instance.item_name = "Money"
+            instance.item_quantity = 1
+            instance.item_description = None
+            instance.item_condition = None
+            instance.pickup_location = None
+            instance.pickup_latitude = None
+            instance.pickup_longitude = None
+            instance.preferred_pickup_time = None
+        
+        elif instance.donation_type == "in_kind":
+            # Set in-kind fields
+            instance.item_name = self.cleaned_data['item_name']
+            instance.item_quantity = self.cleaned_data['item_quantity']
+            instance.item_description = self.cleaned_data['item_description']
+            instance.item_condition = self.cleaned_data['item_condition']
+            instance.pickup_location = self.cleaned_data['pickup_location']
+            instance.preferred_pickup_time = self.cleaned_data['preferred_pickup_time']
+            # Clear monetary fields
+            instance.amount = None
+            instance.currency = 'USD'
+        
+        if commit:
+            instance.save()
+        
+        return instance  
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = User

@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const pickupSection = document.querySelector("#pickup-section");
     const pickupChoice = document.querySelector("select[name='pickup_choice']");
     const pickupLocation = document.querySelector("input[name='pickup_location']");
+    const preferredPickupTime = document.querySelector("input[name='preferred_pickup_time']");
+    const itemCategory = document.querySelector("select[name='item_category']");
     const mapContainer = document.createElement("div");
 
     let map, marker;
@@ -23,10 +25,32 @@ document.addEventListener("DOMContentLoaded", function () {
             inKindFields.classList.add("hidden");
             pickupSection.classList.add("hidden");
             mapContainer.classList.add("hidden");
+            
+            // Make monetary fields required
+            document.querySelector("#id_amount").required = true;
+            document.querySelector("#id_currency").required = true;
+            
+            // Make in-kind fields not required
+            document.querySelector("#id_item_name").required = false;
+            document.querySelector("#id_item_category").required = false;
+            document.querySelector("#id_item_quantity").required = false;
+            document.querySelector("#id_item_description").required = false;
+            document.querySelector("#id_pickup_location").required = false;
+            document.querySelector("#id_preferred_pickup_time").required = false;
         } else {
             monetaryFields.classList.add("hidden");
             inKindFields.classList.remove("hidden");
             pickupSection.classList.remove("hidden");
+            
+            // Make in-kind fields required
+            document.querySelector("#id_item_name").required = true;
+            document.querySelector("#id_item_category").required = true;
+            document.querySelector("#id_item_quantity").required = true;
+            document.querySelector("#id_pickup_location").required = true;
+            
+            // Make monetary fields not required
+            document.querySelector("#id_amount").required = false;
+            document.querySelector("#id_currency").required = false;
         }
     }
 
@@ -122,6 +146,14 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     });
 
+    // Initialize datetime picker for preferred pickup time
+    if (preferredPickupTime) {
+        preferredPickupTime.type = "datetime-local";
+        // Set minimum date to today
+        const today = new Date().toISOString().slice(0, 16);
+        preferredPickupTime.min = today;
+    }
+
     // Call toggleFields initially to set the correct state
     toggleFields();
 });
@@ -129,25 +161,39 @@ document.addEventListener("DOMContentLoaded", function () {
 // Custom form validation
 function validateForm() {
     const donationType = document.querySelector("#donation-type").value;
+    let isValid = true;
 
     if (donationType === "monetary") {
-        const amount = document.querySelector("#{{ form.amount.id_for_label }}").value;
-        const message = document.querySelector("#{{ form.message.id_for_label }}").value;
+        const amount = document.querySelector("#id_amount").value;
+        const currency = document.querySelector("#id_currency").value;
+        const message = document.querySelector("#id_message").value;
 
-        if (!amount || !message) {
+        if (!amount || !currency || !message) {
             alert("Please fill out all required fields for monetary donations.");
-            return false;
+            isValid = false;
         }
     } else {
-        const itemName = document.getElementById("item-name").value;
-        const itemDescription = document.getElementById("item-description").value;
-        const itemQuantity = document.getElementById("item-quantity").value;
+        const itemName = document.querySelector("#id_item_name").value;
+        const itemCategory = document.querySelector("#id_item_category").value;
+        const itemQuantity = document.querySelector("#id_item_quantity").value;
+        const pickupLocation = document.querySelector("#id_pickup_location").value;
+        const preferredPickupTime = document.querySelector("#id_preferred_pickup_time").value;
 
-        if (!itemName || !itemDescription || !itemQuantity) {
+        if (!itemName || !itemCategory || !itemQuantity || !pickupLocation) {
             alert("Please fill out all required fields for in-kind donations.");
-            return false;
+            isValid = false;
+        }
+        
+        // Validate pickup time is in the future if provided
+        if (preferredPickupTime) {
+            const pickupDate = new Date(preferredPickupTime);
+            const now = new Date();
+            if (pickupDate <= now) {
+                alert("Preferred pickup time must be in the future.");
+                isValid = false;
+            }
         }
     }
 
-    return true;
+    return isValid;
 }

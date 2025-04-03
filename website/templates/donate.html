@@ -35,6 +35,9 @@
         <div id="monetary-fields">
             <label for="{{ form.amount.id_for_label }}">Amount:</label>
             {{ form.amount }}
+
+            <label for="{{ form.currency.id_for_label }}">Currency:</label>
+            {{ form.currency }}
         </div>
 
         <!-- In-Kind Donation Fields -->
@@ -42,11 +45,26 @@
             <label for="item-name">Item Name:</label>
             <input type="text" id="item-name" name="item_name" placeholder="Enter item name">
 
+            <label for="item-category">Item Category:</label>
+            <select id="item-category" name="item_category">
+                {% for value, label in form.item_category.field.choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+
             <label for="item-description">Item Description:</label>
             <textarea id="item-description" name="item_description" placeholder="Describe the item"></textarea>
 
             <label for="item-quantity">Quantity:</label>
             <input type="number" id="item-quantity" name="item_quantity" placeholder="Enter quantity">
+
+            <label for="item-condition">Item Condition:</label>
+            <select id="item-condition" name="item_condition">
+                <option value="">Select condition</option>
+                <option value="new">New</option>
+                <option value="used">Used</option>
+                <option value="refurbished">Refurbished</option>
+            </select>
         </div>
 
         <!-- Shared Message Field (Appears for Both Types) -->
@@ -63,6 +81,9 @@
 
             <label for="pickup-location">Pickup Location:</label>
             <input type="text" id="pickup-location" name="pickup_location" placeholder="Enter preferred address" disabled>
+
+            <label for="preferred-pickup-time">Preferred Pickup Time:</label>
+            <input type="datetime-local" id="preferred-pickup-time" name="preferred_pickup_time">
         </div>
 
         <br><br>

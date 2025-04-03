@@ -27,36 +27,66 @@ def home(request):
         return render(request, 'home.html')
 def donate(request):
     if request.method == 'POST':
-        print(request.POST)
         form = DonationForm(request.POST)
         if form.is_valid():
             donation = form.save(commit=False)
             donation.donor = request.user  # Associate donation with logged-in user
 
-            # Assign message explicitly (This prevents it from being ignored)
-            donation.message = form.cleaned_data.get("message", "")
-            
-            # Set default status only for in-kind donations
-            if donation.donation_type == "in_kind" and not donation.status:
-                donation.status = 'pending'
-
-            # Ensure correct fields are saved based on donation type
+            # Handle donation type specific fields
             if donation.donation_type == "monetary":
-                donation.item_name = None
-                donation.item_quantity = None
+                # Clear in-kind specific fields
+                donation.item_name = "Money"  # Set default for monetary donations
+                donation.item_quantity = 1
                 donation.item_description = None
-                donation.pickup_location = None  # No pickup location for monetary donations
-                donation.status = None  # No status for monetary donations
+                donation.item_condition = None
+                donation.pickup_location = None
+                donation.pickup_latitude = None
+                donation.pickup_longitude = None
+                donation.preferred_pickup_time = None
+                donation.status = 'completed'  # Monetary donations complete immediately
             else:
-                donation.amount = None  # No amount for in-kind donations
+                # Clear monetary specific fields
+                donation.amount = None
+                donation.currency = 'USD'
+                
+                # Set default status for in-kind
+                if not donation.status:
+                    donation.status = 'pending'
+                
+                # Geocode pickup location if provided
+                if donation.pickup_location and not (donation.pickup_latitude and donation.pickup_longitude):
+                    try:
+                        # Add geocoding logic here if needed
+                        pass
+                    except Exception as e:
+                        messages.warning(request, "Could not verify pickup location coordinates")
 
-            donation.save()  # Save the donation to the database
-            messages.success(request, "You have successfully made a donation")
+            # Save the donation
+            donation.save()
+            
+            # Handle post-save actions based on donation type
+            if donation.donation_type == "in_kind":
+                # Automatically try to assign to recipient if possible
+                donation.assign_to_recipient()
+            
+            messages.success(request, "Donation submitted successfully!")
             return redirect('account')
     else:
-        form = DonationForm()
-    return render(request, 'donate.html', {'form': form})
+        # Initialize form with default values
+        form = DonationForm(initial={
+            'donation_type': 'monetary',
+            'currency': 'USD',
+            'item_quantity': 1,
+        })
 
+    return render(request, 'donate.html', {
+        'form': form,
+        'monetary_fields': ['amount', 'currency'],
+        'in_kind_fields': ['item_name', 'item_category', 'item_quantity', 
+                          'item_description', 'item_condition',
+                          'pickup_location', 'preferred_pickup_time']
+    })
+    
 
 def donation_success(request):
     return render(request, 'donate.html')
@@ -277,9 +307,6 @@ def unassign_agent(request):
         return redirect("admin_dashboard")
 
 def mark_completed(request, donation_id):
-    """
-    Mark a donation as completed.
-    """
     # Fetch the donation object
     donation = get_object_or_404(Donation, id=donation_id)
 
