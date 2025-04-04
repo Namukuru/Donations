@@ -3,9 +3,6 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from .models import UserProfile, Agent, Recipient
 
-#  Signal to create UserProfile automatically when a User is created
-
-
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -38,3 +35,4 @@ def create_recipient_profile(sender, instance, created, **kwargs):
             population=getattr(instance, 'population', None),  # Ensure population is set
             phone_number=getattr(instance, 'phone_number', None)  # Ensure phone_number is set
         )
+        

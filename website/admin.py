@@ -14,7 +14,7 @@ class UserProfileInline(admin.StackedInline):
 
 class CustomUserAdmin(UserAdmin):
     inlines = (UserProfileInline,)
-    list_display = ('id','username', 'email', 'get_role', 'is_staff', 'get_created_at')
+    list_display = ('id','username','first_name', 'last_name','email', 'get_role', 'is_staff', 'get_created_at')
     list_select_related = ('userprofile',)
 
     def get_role(self, instance):
@@ -27,7 +27,7 @@ class CustomUserAdmin(UserAdmin):
     
 @admin.register(Donation)
 class DonationAdmin(admin.ModelAdmin):
-    list_display = ('id','donation_type_display','donor_info','amount_display','item_info','recipient_info','assigned_agent','status_display','created_at','fulfillment_display')
+    list_display = ('id','donation_type_display','donor_info','amount_display','item_info','recipient_info','assigned_agent','status_display','created_at','pickup_location')
     list_filter = ('status','donation_type','created_at','assigned_recipient','assigned_agent')
     search_fields = ('donor__username','donor__first_name','donor__last_name','item_name','assigned_recipient__user__username','assigned_agent__username')
     ordering = ('-created_at',)

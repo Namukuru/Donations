@@ -95,7 +95,9 @@
                                 <td>{{ donation.message }}</td>
                                 <td>{{ donation.pickup_address }}</td>
                                 <td>{{ donation.created_at }}</td>
-                                <td>{{ donation.assigned_agent.username|default:"Not Assigned" }}</td>
+                                <td>
+                                    {{ donation.assigned_agent.first_name|default:"Not Assigned" }}{% if donation.assigned_agent.last_name %} {{ donation.assigned_agent.last_name }}{% endif %}
+                                </td>
                                 <td>{{ donation.get_status_display }}</td>
                             </tr>
                         {% endfor %}

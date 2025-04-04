@@ -37,7 +37,7 @@
         <table id="monetaryTable" class="table table-striped table-hover table-bordered mb-0">
           <thead class="table-dark">
             <tr>
-              <th>#</th>
+              <th></th>
               <th>Donor</th>
               <th>Total Donated</th>
             </tr>
@@ -46,7 +46,13 @@
             {% for donor in donations_per_donor %}
               <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ donor.donor__username }}</td>
+                <td>
+                  {% if donation.donor.first_name or donation.donor.last_name %}
+                    {{ donation.donor.first_name|default:"" }} {{ donation.donor.last_name|default:"" }}
+                  {% else %}
+                    {{donation.donor.username|default:"Anonymous"}}
+                  {% endif %}
+                </td> 
                 <td>${{ donor.total_donated }}</td>
               </tr>
             {% endfor %}
@@ -73,7 +79,7 @@
         <table id="kindTable" class="table table-striped table-hover table-bordered mb-0">
           <thead class="table-dark">
             <tr>
-              <th>#</th>
+              <th></th>
               <th>Donor</th>
               <th>Item Name</th>
               <th>Quantity</th>
@@ -85,7 +91,13 @@
             {% for donation in in_kind_donations %}
               <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ donation.donor.username }}</td>
+                <td>
+                  {% if donation.donor.first_name or donation.donor.last_name %}
+                    {{ donation.donor.first_name|default:"" }} {{ donation.donor.last_name|default:"" }}
+                  {% else %}
+                    Anonymous
+                  {% endif %}
+                </td>                
                 <td>{{ donation.item_name }}</td>
                 <td>{{ donation.item_quantity }}</td>
                 <td>{{ donation.item_description }}</td>

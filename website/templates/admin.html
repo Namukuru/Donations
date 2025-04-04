@@ -16,6 +16,7 @@
                 <th></th>
                 <th>Donor Name</th>
                 <th>Pickup Address</th>
+                <th>Quantity</th>
                 <th>Donation Items</th>
                 <th>Assign Agent</th>
                 <th>
@@ -35,7 +36,8 @@
               <tr>
                 <td>{{ forloop.counter }}</td>
                 <td>{{ job.donor_name }}</td>
-                <td>{{ job.formatted_address }}</td>
+                <td>{{ job.pickup_address }}</td>
+                <td>{{ job.quantity}}</td>
                 <td>{{ job.donation_items }}</td>
                 <td>
                   <form method="POST" action="{% url 'assign_agent' %}">
@@ -80,6 +82,7 @@
                         <th></th>
                         <th>Donor Name</th>
                         <th>Pickup Address</th>
+                        <th>Quantity</th>
                         <th>Donation Items</th>
                         <th>Assigned Agent</th>
                         <th>Status</th> 
@@ -91,7 +94,8 @@
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>{{ job.donor_name }}</td>
-                        <td>{{ job.formatted_address }}</td>
+                        <td>{{ job.pickup_address }}</td>
+                        <td>{{ job.quantity}}</td>
                         <td>{{ job.donation_items }}</td>
                         <td>{{ job.assigned_agent }}</td>
                         <td>{{ job.status|capfirst }}</td>

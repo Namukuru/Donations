@@ -14,15 +14,25 @@ def admin_dashboard(request):
 
     context = {
         "unassigned_donations": [
-            {"id": d.id, "donor_name": d.donor.username, "pickup_address": address_map.get(d.pickup_location, "N/A"), "donation_items": f"{d.item_quantity or 1}x {d.item_name}"}
+            {"id": d.id, "donor_name": f"{d.donor.first_name} {d.donor.last_name}", "pickup_address": address_map.get(d.pickup_location, "N/A"), "quantity": d.item_quantity or 1,
+            "donation_items": f"{d.item_name}",}
             for d in unassigned_donations
         ],
         "assigned_donations": [
-            {"id": d.id, "donor_name": d.donor.username, "pickup_address": address_map.get(d.pickup_location, "N/A"), "assigned_agent": d.assigned_agent.username, "status": d.status}
-            for d in assigned_donations
+        {
+            "id": d.id,
+            "donor_name": f"{d.donor.first_name or ''} {d.donor.last_name or ''}".strip() if d.donor.first_name or d.donor.last_name else d.donor.username,
+            "pickup_address": address_map.get(d.pickup_location, "N/A"),
+            "assigned_agent": f"{d.assigned_agent.first_name or ''} {d.assigned_agent.last_name or ''}".strip() if d.assigned_agent.first_name or d.assigned_agent.last_name else d.assigned_agent.username,
+            "status": d.status,
+            "quantity": d.item_quantity or 1,
+            "donation_items": f"{d.item_name}",
+        }
+        for d in assigned_donations
         ],
         "agents": Agent.objects.select_related('user').only('id', 'user__username'),
     }
+            
     return render(request, "admin.html", context)
 
 def report(request):
@@ -40,7 +50,7 @@ def report(request):
     # Fetch total donations per donor efficiently
     donations_per_donor = (
         donations.filter(donation_type="monetary")
-        .values("donor__username")
+        .values("donor__first_name", "donor__last_name")
         .annotate(total_donated=Sum("amount"))
     )
 
