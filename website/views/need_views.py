@@ -10,14 +10,35 @@ def need_list(request):
         messages.error(request, "Only recipients can view needs")
         return redirect('home')
     
+    # Retrieve needs for the logged-in user
     needs = Need.objects.filter(recipient=request.user.recipient).order_by('-priority', 'is_fulfilled', '-date_logged')
+
+    # Calculate fulfillment percentage for each need
+    for need in needs:
+        if need.quantity_needed > 0:  # Avoid division by zero
+            need.fulfillment_percentage = int((need.quantity_received / need.quantity_needed) * 100)
+        else:
+            need.fulfillment_percentage = 0
+
+    # Calculate the total number of needs, fulfilled needs, and urgent needs
+    total_needs = needs.count()
+    fulfilled_needs = needs.filter(is_fulfilled=True).count()
+    urgent_needs = needs.filter(priority=4, is_fulfilled=False).count()
+
+    # Check if there are no needs and show a message
+    if total_needs == 0:
+        messages.info(request, "You currently have no needs recorded.")
+
     context = {
-        'needs': needs,
-        'total_needs': needs.count(),
-        'fulfilled_needs': needs.filter(is_fulfilled=True).count(),
-        'urgent_needs': needs.filter(priority=4, is_fulfilled=False).count(),
+        'needs': needs,  # Directly use the list of needs
+        'total_needs': total_needs,
+        'fulfilled_needs': fulfilled_needs,
+        'urgent_needs': urgent_needs,
     }
+
     return render(request, 'need_list.html', context)
+
+
 
 @login_required
 def need_create(request):

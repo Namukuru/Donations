@@ -98,9 +98,9 @@
                     Anonymous
                   {% endif %}
                 </td>                
-                <td>{{ donation.item_name }}</td>
+                <td>{{ donation.item_name|capfirst }}</td>
                 <td>{{ donation.item_quantity }}</td>
-                <td>{{ donation.item_description }}</td>
+                <td>{{ donation.item_description|capfirst }}</td>
                 <td>{{ donation.pickup_address }}</td>
               </tr>
             {% endfor %}
