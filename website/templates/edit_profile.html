@@ -60,11 +60,27 @@
                 <div class="mb-3">
                     <label class="form-label"><strong>Location:</strong></label>
                     <select id="location-select" class="form-select" name="location_option">
-                        <option value="current" selected>Use Current Location</option>
-                        <option value="another">Use Another Location</option>
+                        <option value="current" {% if not agent.location %}selected{% endif %}>Use Current Location</option>
+                        <option value="another" {% if agent.location %}selected{% endif %}>Use Another Location</option>
                     </select>
-                    <input type="text" id="location-input" name="location" class="form-control mt-2" value="{{ agent.location }}" disabled>
-                    <div id="map" style="height: 400px; width: 100%; display: none;"></div>
+                    <input type="text" id="location-input" name="location" class="form-control mt-2" value="{{ agent.location }}" {% if not agent.location %}disabled{% endif %}>
+                    <div id="map" style="height: 400px; width: 100%; {% if not agent.location %}display: none;{% endif %}"></div>
+                </div>
+                {% elif recipient %}
+                <!-- Recipient Specific Fields -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Phone Number:</strong></label>
+                    <input type="text" name="phone_number" class="form-control" value="{{ recipient.phone_number }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Population:</strong></label>
+                    <input type="number" name="population" class="form-control" value="{{ recipient.population }}" min="1">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Location:</strong></label>
+                    <input type="text" name="location" class="form-control" value="{{ recipient.location }}">
                 </div>
                 {% endif %}
 

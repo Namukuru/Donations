@@ -1,43 +1,78 @@
 {% extends 'base.html' %}
-
 {% block content %}
 {% load static %}
+
 <link rel="stylesheet" href="{% static 'css/profile.css' %}">
 
-<div class="container mt-5">
-    <div class="card profile-card shadow-lg p-4">
-        <div class="card-body text-center">
-            <h2 class="card-title mb-4 text-primary">My Profile</h2>
+<div class="container profile-container">
+    
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <h2>My Profile</h2>
+    </div>
 
-            <div class="profile-info">
-                <p><strong>Username:</strong> <span class="text-muted">{{ user.username }}</span></p>
-                <p><strong>Email:</strong> <span class="text-muted">{{ user.email }}</span></p>
+    <!-- Profile Picture -->
+    <img src="{% static 'images/avatar.svg' %}" alt="Profile Picture" class="profile-pic">
 
-                {% if agent %}
-                    <p><strong>Phone:</strong> <span class="text-muted">{{ agent.phone }}</span></p>
-                    <p><strong>Location:</strong> <span class="text-muted">{{ agent.location }}</span></p>
-                {% else %}
-                    <p><strong>Phone:</strong> <span class="text-muted">Not available</span></p>
-                    <p><strong>Location:</strong> <span class="text-muted">Not available</span></p>
-                {% endif %}
+    <div class="profile-info">
+        <p><strong>Username:</strong> <span class="text-muted">{{ user.username }}</span></p>
+        <p><strong>Email:</strong> <span class="text-muted">{{ user.email }}</span></p>
 
-                <p><strong>Role:</strong> 
-                    <span class="badge {% if user.is_superuser %} bg-danger {% elif agent %} bg-warning {% elif recipient %} bg-info {% else %} bg-success {% endif %}">
-                        {% if user.is_superuser %}
-                            Admin
-                        {% elif agent %}
-                            Agent
-                        {% elif recipient %}
-                            Recipient
-                        {% else %}
-                            Donor
-                        {% endif %}
-                    </span>
+        {% if agent %}
+            <p><strong>Phone:</strong> <span class="text-muted">{{ agent.phone }}</span></p>
+            <p><strong>Location:</strong> <span class="text-muted">{{ agent_address|default:"Not available" }}</span></p>
+            <p><strong>Availability:</strong> 
+                <span class="badge {% if agent.is_available %}bg-success{% else %}bg-secondary{% endif %}">
+                    {{ agent.is_available|yesno:"Available,Unavailable" }}
+                </span>
+            </p>
+
+        {% elif recipient %}
+            <p><strong>Phone:</strong> <span class="text-muted">{{ recipient.phone_number|default:"Not available" }}</span></p>
+            <p><strong>Location:</strong> <span class="text-muted">{{ recipient_address|default:"Not available" }}</span></p>
+            <p><strong>Population:</strong> <span class="text-muted">{{ recipient.population }}</span></p>
+            
+            {% if recipient.last_received %}
+                <p><strong>Last Received:</strong> 
+                    <span class="text-muted">{{ recipient.last_received|date:"M d, Y" }}</span>
                 </p>
-            </div>
+            {% else %}
+                <p><strong>Last Received:</strong> 
+                    <span class="text-muted">Never</span>
+                </p>
+            {% endif %}
+            
+            <p><strong>Priority Score:</strong> <span class="text-muted">{{ recipient.priority_score|floatformat:2 }}</span></p>
 
-            <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary mt-3">Edit Profile</a>
-        </div>
+        {% else %}
+            <!-- Donor (default) -->
+            <p><strong>Phone:</strong> <span class="text-muted">Not available</span></p>
+            <p><strong>Location:</strong> <span class="text-muted">Not available</span></p>
+        {% endif %}
+
+        <!-- Role Label -->
+        <p><strong>Role:</strong> 
+            <span class="role-badge 
+                {% if user.is_superuser %}bg-danger text-white
+                {% elif agent %}bg-warning text-dark
+                {% elif recipient %}bg-info text-white
+                {% else %}bg-success text-white{% endif %}">
+                {% if user.is_superuser %}
+                    Admin
+                {% elif agent %}
+                    Agent
+                {% elif recipient %}
+                    Recipient
+                {% else %}
+                    Donor
+                {% endif %}
+            </span>
+        </p>
+
+        <!-- Edit Button -->
+        <a href="{% url 'edit_profile' %}" class="btn btn-outline-primary btn-edit">
+            <i class="bi bi-pencil"></i> Edit Profile
+        </a>
     </div>
 </div>
 

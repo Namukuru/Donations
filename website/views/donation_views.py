@@ -44,28 +44,32 @@ def donate(request):
 def account(request):
     # Check if user is a recipient
     is_recipient = hasattr(request.user, 'recipient')
+    recipient = request.user.recipient if is_recipient else None
     
+    # Get donations made by the user
     donations = Donation.objects.filter(donor=request.user).select_related(
         "assigned_agent", 
-        "assigned_recipient"
+        "assigned_recipient__user"  # Pull recipient and their user info
     ).order_by('-created_at')
 
+    # Split by donation type
     monetary_donations = donations.filter(donation_type="monetary")
     in_kind_donations = donations.filter(donation_type="in_kind")
 
-    # Get donations assigned to the user if they're a recipient
+    # Donations assigned *to* this user (if they're a recipient)
     assigned_donations = Donation.objects.none()
     if is_recipient:
         assigned_donations = Donation.objects.filter(
             assigned_recipient=request.user.recipient
         ).select_related("donor", "assigned_agent")
 
-    # Convert pickup locations to addresses
+    # Convert pickup coordinates to addresses
     for donation in chain(in_kind_donations, assigned_donations):
         donation.pickup_address = get_address_from_coordinates(
             donation.pickup_location
         ) if donation.pickup_location else "No pickup location provided"
 
+    # Paginate
     monetary_page_obj = Paginator(monetary_donations, 10).get_page(request.GET.get('monetary_page'))
     in_kind_page_obj = Paginator(in_kind_donations, 10).get_page(request.GET.get('in_kind_page'))
     assigned_page_obj = Paginator(assigned_donations, 10).get_page(request.GET.get('assigned_page'))
@@ -76,5 +80,6 @@ def account(request):
         "assigned_page_obj": assigned_page_obj,
         "total_donations": sum(d.amount for d in monetary_page_obj if d.amount) or 0,
         "is_recipient": is_recipient,
+        "recipient": recipient,
     }
     return render(request, "account.html", context)

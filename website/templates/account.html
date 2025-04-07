@@ -148,6 +148,8 @@
                                     <th>Message</th>
                                     <th>Pickup Location</th>
                                     <th>Donated On</th>
+                                    <th>Recipient</th>
+                                    <th>Agent</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -161,15 +163,60 @@
                                         <td>{{ donation.message|capfirst }}</td>
                                         <td>{{ donation.pickup_address }}</td>
                                         <td>{{ donation.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if donation.assigned_recipient %}
+                                                {{ donation.assigned_recipient.user.get_full_name }}
+                                            {% else %}
+                                                Unassigned
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if donation.assigned_agent %}
+                                                <a href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#agentModal{{ donation.id }}">
+                                                    {{ donation.assigned_agent.get_full_name }}
+                                                </a>
+                                            {% else %}
+                                                Unassigned
+                                            {% endif %}
+                                        </td>                                 
                                         <td>{{ donation.get_status_display }}</td>
                                     </tr>
                                 {% endfor %}
-                            </tbody>
+                            </tbody>  
                         </table>
                     </div>
                 </div>
             </div>
-            
+
+            {% for donation in in_kind_page_obj %}
+                {% if donation.assigned_agent %}
+                    <div class="modal fade" id="agentModal{{ donation.id }}" tabindex="-1" aria-labelledby="agentModalLabel{{ donation.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="agentModalLabel{{ donation.id }}">Agent Details</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p><strong>Name:</strong> {{ donation.assigned_agent.get_full_name }}</p>
+                                    <p><strong>Email:</strong> <a href="mailto:{{ donation.assigned_agent.email }}">{{ donation.assigned_agent.email }}</a></p>
+                                    <p><strong>Phone:</strong>
+                                        {% if donation.assigned_agent.profile.phone %}
+                                            <a href="tel:{{ donation.assigned_agent.profile.phone }}">{{ donation.assigned_agent.profile.phone }}</a>
+                                        {% else %}
+                                            <em>Not Provided</em>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
             <!-- Pagination -->
             <div class="pagination mt-3">
                 <span class="step-links">
@@ -195,5 +242,7 @@
  
 {% endif %}
 <!-- Donate Button -->
-<a class="btn btn-secondary" href="{% url 'donate' %}">Donate</a>
+{% if not recipient %}
+    <a class="btn btn-secondary" href="{% url 'donate' %}">Donate</a>
+{% endif %}
 {% endblock %}

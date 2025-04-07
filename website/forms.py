@@ -210,8 +210,8 @@ class DonationForm(forms.ModelForm):
         widget=forms.NumberInput(attrs={'placeholder': '0.00'})
     )
     currency = forms.ChoiceField(
-        choices=[('USD', 'USD'), ('EUR', 'EUR'), ('GBP', 'GBP')],  # Add more as needed
-        initial='USD',
+        choices=[('KES','KES'),('USD', 'USD'), ('EUR', 'EUR')],  # Add more as needed
+        initial='KES',
         required=False
     )
     
@@ -327,7 +327,7 @@ class DonationForm(forms.ModelForm):
             
             # Clear monetary fields
             cleaned_data["amount"] = None
-            cleaned_data["currency"] = 'USD'
+            cleaned_data["currency"] = 'KES'
         
         return cleaned_data
 
@@ -358,7 +358,7 @@ class DonationForm(forms.ModelForm):
             instance.preferred_pickup_time = self.cleaned_data['preferred_pickup_time']
             # Clear monetary fields
             instance.amount = None
-            instance.currency = 'USD'
+            instance.currency = 'KES'
         
         if commit:
             instance.save()
