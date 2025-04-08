@@ -52,7 +52,7 @@
                 <table class="table table-bordered table-hover mb-0">
                     <thead class="table-dark">
                         <tr>
-                            <th>#</th>
+                            <th></th>
                             <th>Donor</th>
                             <th>Pickup Address</th>
                             <th>Donation Items</th>
@@ -65,8 +65,14 @@
                         {% for donation in assigned_donations %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
-                            <td>{{ donation.donor.username }}</td>
-                            <td>{{ donation.pickup_address }}</td>
+                            <td> 
+                                {% if donation.donor.first_name or donation.donor.last_name %}
+                                    {{ donation.donor.first_name }}  {{donation.donor.last_name}}
+                                {% else %}
+                                    {{ donation.donor.username }}
+                                {% endif %}
+                            </td>
+                            <td>{{ donation.pickup_address }} </td>
                             <td>{{ donation.item_quantity }} x {{ donation.item_name }}</td>
                             <td>
                                 <div class="progress" style="height: 20px;">

@@ -207,13 +207,19 @@
                                     <p><strong>Name:</strong> {{ donation.assigned_agent.get_full_name }}</p>
                                     <p><strong>Email:</strong> <a href="mailto:{{ donation.assigned_agent.email }}">{{ donation.assigned_agent.email }}</a></p>
                                     <p><strong>Phone:</strong>
-                                        {% if donation.assigned_agent.profile.phone %}
-                                            <a href="tel:{{ donation.assigned_agent.profile.phone }}">{{ donation.assigned_agent.profile.phone }}</a>
+                                        {% if donation.assigned_agent.agent.phone %}
+                                            {{ donation.assigned_agent.agent.phone }}
                                         {% else %}
                                             <em>Not Provided</em>
                                         {% endif %}
                                     </p>
-                                    <p><strong>ID Number:</strong>{{ donation.assigned_agent.profile.id_number}}</p>
+                                    <p><strong>ID Number:</strong>
+                                        {% if donation.assigned_agent.agent.id_number %}
+                                            {{ donation.assigned_agent.agent.id_number }}
+                                        {% else %}
+                                            <em>Not Provided</em>
+                                        {% endif %}
+                                    </p>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

@@ -52,6 +52,7 @@ def account(request):
     # Get donations made by the user
     donations = Donation.objects.filter(donor=request.user).select_related(
         "assigned_agent", 
+        "assigned_agent__agent", 
         "assigned_recipient__user"  # Pull recipient and their user info
     ).order_by('-created_at')
 
@@ -86,3 +87,4 @@ def account(request):
         "recipient": recipient,
     }
     return render(request, "account.html", context)
+

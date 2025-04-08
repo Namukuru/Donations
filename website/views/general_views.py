@@ -104,6 +104,8 @@ def jobs(request):
             "pickup_location",
             "status",
             "donor__username",  # Fetch donor's username
+            "donor__first_name",
+            "donor__last_name",
         )
     )
 
