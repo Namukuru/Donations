@@ -1,4 +1,5 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
 from .views.auth_views import login_user, logout_user, register_user
 from .views.donation_views import donate, account
 from .views.need_views import need_list, need_create, need_update, need_delete
@@ -39,4 +40,10 @@ urlpatterns = [
     path("needs/create/", need_create, name="need_create"),
     path("needs/<int:pk>/update/", need_update, name="need_update"),
     path("needs/<int:pk>/delete/", need_delete, name="need_delete"),
+    
+    # Password reset links (built-in)
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 ]

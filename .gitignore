@@ -2,3 +2,4 @@
 myvirtualenv
 db.sqlite3
 .qodo
+.env
