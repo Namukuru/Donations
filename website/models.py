@@ -5,6 +5,8 @@ from django.db.models import Q, F, Sum, Case, When,Count
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from math import radians, sin, cos, sqrt, atan2
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 
 User = get_user_model()
 
@@ -47,7 +49,14 @@ class Agent(models.Model):
     location = models.CharField(max_length=255, blank=True, null=True) 
     phone = models.CharField(max_length=15)
     is_available = models.BooleanField(default=True)
-
+    id_number = models.PositiveIntegerField(
+        default=100000,  
+        validators=[
+            MinValueValidator(100000),        
+            MaxValueValidator(999999999999)   
+        ]
+    )
+    
     def __str__(self):
         return f"Agent: {self.user.username}"
 

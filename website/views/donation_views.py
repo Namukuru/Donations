@@ -16,21 +16,23 @@ def donate(request):
             donation = form.save(commit=False)
             donation.donor = request.user  
 
-            # Handle donation type logic
+            # If recipient was chosen by donor, it's already handled in form.save()
+
             if donation.donation_type == "monetary":
                 donation.item_name, donation.item_quantity, donation.status = "Money", 1, "completed"
                 donation.item_description = donation.item_condition = donation.pickup_location = None
-                donation.amount = donation.amount or 0  
+                donation.amount = donation.amount or 0
             else:
                 donation.currency = 'USD'
                 donation.status = donation.status or 'pending'
 
                 if donation.pickup_location and not (donation.pickup_latitude and donation.pickup_longitude):
-                    pass  # Geocoding logic (if needed)
+                    pass  # Geocoding logic placeholder
 
             donation.save()
 
-            if donation.donation_type == "in_kind":
+            # Only run backend assignment if no recipient was selected by donor
+            if donation.donation_type == "in_kind" and not donation.assigned_recipient:
                 donation.assign_to_recipient()
 
             messages.success(request, "Donation submitted successfully!")
@@ -39,6 +41,7 @@ def donate(request):
         form = DonationForm(initial={'donation_type': 'monetary', 'currency': 'USD', 'item_quantity': 1})
 
     return render(request, 'donate.html', {'form': form})
+
 
 @login_required
 def account(request):

@@ -256,6 +256,12 @@ class DonationForm(forms.ModelForm):
         widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         help_text="Preferred date/time for pickup"
     )
+    
+    assigned_recipient = forms.ModelChoiceField(
+        queryset=Recipient.objects.all(),
+        required=False,
+        help_text="Optionally select a recipient, or leave blank to let the system assign one automatically."
+    )
 
     class Meta:
         model = Donation
@@ -266,9 +272,9 @@ class DonationForm(forms.ModelForm):
             'amount', 'currency',
             # In-kind fields
             'item_name', 'item_category', 'item_quantity',
-            'item_description', 'item_condition',
+            'item_description', 'item_condition','assigned_recipient',
             # Location fields
-            'pickup_location', 'preferred_pickup_time'
+            'pickup_location', 'preferred_pickup_time',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -333,7 +339,15 @@ class DonationForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        
+
+        # Assign user-selected recipient if provided
+        recipient = self.cleaned_data.get('assigned_recipient')
+        if recipient:
+            instance.assigned_recipient = recipient
+            instance.status = 'in_progress'
+        else:
+            instance.assigned_recipient = None  # Let backend handle assignment
+
         if instance.donation_type == "monetary":
             # Set monetary fields
             instance.amount = self.cleaned_data['amount']
@@ -347,7 +361,7 @@ class DonationForm(forms.ModelForm):
             instance.pickup_latitude = None
             instance.pickup_longitude = None
             instance.preferred_pickup_time = None
-        
+
         elif instance.donation_type == "in_kind":
             # Set in-kind fields
             instance.item_name = self.cleaned_data['item_name']
@@ -359,11 +373,12 @@ class DonationForm(forms.ModelForm):
             # Clear monetary fields
             instance.amount = None
             instance.currency = 'KES'
-        
+
         if commit:
             instance.save()
-        
-        return instance  
+
+        return instance
+  
 
 
 class ProfileUpdateForm(UserChangeForm):

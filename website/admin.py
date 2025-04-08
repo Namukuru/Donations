@@ -149,8 +149,8 @@ class DonationAdmin(admin.ModelAdmin):
     
 @admin.register(Agent)
 class AgentAdmin(admin.ModelAdmin):
-    list_display = ('user', 'location', 'phone')  # Fields to display in the list view
-    search_fields = ('user__username', 'location', 'phone')  # Enable search functionality
+    list_display = ('user', 'location', 'phone','id_number')  # Fields to display in the list view
+    search_fields = ('user__username', 'location', 'phone','id_number')  # Enable search functionality
     list_filter = ('location',)  # Add filtering by location
 
 @admin.register(Recipient)

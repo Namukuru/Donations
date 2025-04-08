@@ -2,7 +2,13 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center">
   <div>
-    <h1>Welcome {{ user.first_name }} {{ user.last_name }}</h1>
+    <h1>Welcome 
+        {% if user.first_name or user.last_name %}
+            {{ user.first_name }} {{ user.last_name }}
+        {% else %}
+            {{ user.username }}
+        {% endif %}
+    </h1>
   </div>
   {% if not is_recipient %}
   <div class="total-donations">
@@ -207,6 +213,7 @@
                                             <em>Not Provided</em>
                                         {% endif %}
                                     </p>
+                                    <p><strong>ID Number:</strong>{{ donation.assigned_agent.profile.id_number}}</p>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

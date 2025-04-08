@@ -85,6 +85,11 @@
             <label for="preferred-pickup-time">Preferred Pickup Time:</label>
             <input type="datetime-local" id="preferred-pickup-time" name="preferred_pickup_time">
         </div>
+            <!-- Optional: Select Recipient (only shown if recipients available) -->
+        {% if form.assigned_recipient %}
+        <label for="{{ form.assigned_recipient.id_for_label }}">Assign to Recipient (optional):</label>
+        {{ form.assigned_recipient }}
+        {% endif %}
 
         <br><br>
         <button type="submit" class="btn btn-primary">Donate</button>
