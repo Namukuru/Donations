@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thank You for Your Donation</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .footer { margin-top: 20px; padding: 10px; text-align: center; font-size: 0.8em; color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Thank You for Your Donation!</h1>
+        </div>
+        
+        <div class="content">
+            <p>Dear {{ donor.username }},</p>
+            
+            <p>We sincerely appreciate your {{ donation.get_donation_type_display }} donation. Here are the details:</p>
+            
+            <h3>Donation Summary</h3>
+            <ul>
+                <li><strong>Type:</strong> {{ donation.get_donation_type_display }}</li>
+                {% if donation.donation_type == "monetary" %}
+                    <li><strong>Amount:</strong> {{ donation.amount }} {{ donation.currency }}</li>
+                {% else %}
+                    <li><strong>Item:</strong> {{ donation.item_name }}</li>
+                    <li><strong>Quantity:</strong> {{ donation.item_quantity }}</li>
+                {% endif %}
+                <li><strong>Status:</strong> {{ donation.get_status_display }}</li>
+                <li><strong>Date:</strong> {{ donation.created_at|date:"F j, Y" }}</li>
+            </ul>
+            
+            {% if donation.donation_type == "in_kind" and matching_needs %}
+                <h3>Your donation will help with:</h3>
+                <ul>
+                    {% for need in matching_needs %}
+                        <li>{{ need.name }} ({{ need.category }}) - {{ need.quantity_needed }} needed</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            
+            <p>We will keep you updated on the status of your donation. If you have any questions, please reply to this email.</p>
+            
+            <p>With gratitude,</p>
+            <p>The Donation Team,</p>
+            <p>{{ site_name }}</p>
+        </div>
+        
+        <div class="footer">
+            <p>© {% now "Y" %} Your Organization Name. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
