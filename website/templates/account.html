@@ -34,8 +34,7 @@
                                     <th>Item Name</th>
                                     <th>Quantity</th>
                                     <th>Description</th>
-                                    <th>Message</th>
-                                    <th>Pickup Location</th>
+                                    <th>Message</th>    
                                     <th>Donated On</th>
                                     <th>Status</th>
                                 </tr>
@@ -49,7 +48,6 @@
                                         <td>{{ donation.item_quantity }}</td>
                                         <td>{{ donation.item_description|capfirst }}</td>
                                         <td>{{ donation.message|capfirst }}</td>
-                                        <td>{{ donation.pickup_address }}</td>
                                         <td>{{ donation.created_at|date:"d M, Y" }}</td>
                                         <td>{{ donation.get_status_display }}</td>
                                     </tr>
