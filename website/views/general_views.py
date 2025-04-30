@@ -2,8 +2,9 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
-from ..models import Donation, Agent
+from ..models import Donation, Agent, DonationCompletionPhoto
 from ..utils import get_address_from_coordinates
+from ..forms import DonationCompletionForm
 
 def home(request):
     # Check to see if user is logging in
@@ -70,18 +71,31 @@ def unassign_agent(request):
         return redirect("admin_dashboard")
 
 def mark_completed(request, donation_id):
-    # Fetch the donation object
     donation = get_object_or_404(Donation, id=donation_id)
-
-    # Update the donation status to "completed"
-    donation.status = "completed"
-    donation.save()
-
-    # Add a success message
-    messages.success(request, f"Donation {donation.id} marked as completed.")
-
-    # Redirect to the jobs page or any other page
-    return redirect("jobs")  # Replace "jobs" with the appropriate URL name
+    
+    if request.method == 'POST':
+        form = DonationCompletionForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Save photos
+            for i in range(1, 4):
+                photo_field = f'photo{i}'
+                DonationCompletionPhoto.objects.create(
+                    donation=donation,
+                    photo=form.cleaned_data[photo_field],
+                    caption=f"Completion photo {i}"
+                )
+            
+            # Update donation status
+            donation.complete(notes=form.cleaned_data['notes'])
+            messages.success(request, f"Donation {donation.id} marked as completed with photos.")
+            return redirect("jobs")
+    else:
+        form = DonationCompletionForm()
+    
+    return render(request, 'complete_donation.html', {
+        'donation': donation,
+        'form': form
+    })
 
 def jobs(request):
     """Show jobs assigned to the logged-in agent."""

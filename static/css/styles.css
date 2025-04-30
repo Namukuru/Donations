@@ -8,8 +8,7 @@
   
   /*Styling the alert messages*/
   .alert{
-    font-size: 15px;
-    
+    font-size: 15px; 
   }
   
   .form-container {
@@ -20,41 +19,42 @@
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     margin: auto;
   }
+
   label {
     display: block;
     margin-top: 10px;
     font-weight: bold;
   }
-  input,
-  select,
-  textarea {
+
+  input,select,textarea {
     width: 100%;
     padding: 8px;
     margin-top: 5px;
     border: 1px solid #ccc;
     border-radius: 5px;
   }
+
   .donation-type {
     margin-bottom: 20px;
   }
+  
   .hidden {
     display: none;
   }
-  .project-card {
-    padding: 20px;
-    color: white;
-  }
+ 
   /*size of cards*/
   .project-card {
     padding: 20px;
+    color: white;
     text-align: center;
     min-height: 150px; /* Ensures equal height */
     display: flex;
     align-items: center;
     justify-content: center;
   }
+
   .bg-custom-blue {
-    background-color: #4a90e2; /* Custom blue color */
+    background-color: #4a90e2;
   }
   
   

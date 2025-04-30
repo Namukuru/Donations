@@ -3,3 +3,4 @@ myvirtualenv
 db.sqlite3
 .qodo
 .env
+donation_completion_photos

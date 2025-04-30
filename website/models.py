@@ -7,7 +7,6 @@ from django.urls import reverse
 from math import radians, sin, cos, sqrt, atan2
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-
 User = get_user_model()
 
 # Create your models here.
@@ -485,4 +484,18 @@ class Need(models.Model):
         elif self.remaining_need > 0 and self.is_fulfilled:
             self.is_fulfilled = False
             self.save()
-            
+        
+
+class DonationCompletionPhoto(models.Model):
+    donation = models.ForeignKey(Donation, on_delete=models.CASCADE, related_name='completion_photos')
+    
+    def upload_to_path(instance, filename):
+        date_str = timezone.now().strftime('%Y-%m-%d')
+        return f'donation_completion_photos/{instance.donation.id}_{date_str}_{filename}'
+    
+    photo = models.ImageField(upload_to=upload_to_path)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    caption = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"Photo for {self.donation} - {self.uploaded_at}"

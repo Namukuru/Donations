@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Complete Donation #{{ donation.id }}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Please upload 3 photos to complete this donation:</p>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.photo1.label }}</label>
+                            {{ form.photo1 }}
+                            <div class="form-text">Required photo of the donation</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.photo2.label }}</label>
+                            {{ form.photo2 }}
+                            <div class="form-text">Required photo of the donation</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.photo3.label }}</label>
+                            {{ form.photo3 }}
+                            <div class="form-text">Required photo of the donation</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.notes.label }}</label>
+                            {{ form.notes }}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check-circle"></i> Mark as Completed
+                        </button>
+                        <a href="{% url 'jobs' %}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

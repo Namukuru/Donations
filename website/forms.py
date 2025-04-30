@@ -380,7 +380,13 @@ class DonationForm(forms.ModelForm):
         return instance
   
 
-
+class DonationCompletionForm(forms.Form):
+    photo1 = forms.ImageField(label='Photo 1', required=True)
+    photo2 = forms.ImageField(label='Photo 2', required=True)
+    photo3 = forms.ImageField(label='Photo 3', required=True)
+    notes = forms.CharField(label='Completion Notes', widget=forms.Textarea, required=False)
+    
+    
 class ProfileUpdateForm(UserChangeForm):
     class Meta:
         model = User

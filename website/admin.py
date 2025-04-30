@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile, Donation, Agent, Recipient,Need
+from .models import UserProfile, Donation, Agent, Recipient,Need, DonationCompletionPhoto
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
@@ -315,4 +315,5 @@ class NeedAdmin(admin.ModelAdmin):
     
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(DonationCompletionPhoto)
 
