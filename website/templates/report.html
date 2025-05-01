@@ -1,6 +1,4 @@
-{% extends 'base.html' %}
-{% block content %}
-{% load static %}
+{% extends 'base.html' %} {% block content %} {% load static %}
 <div class="container">
   <h2>Donation Report</h2>
 
@@ -19,13 +17,55 @@
       </div>
     </div>
   </div>
+  <form method="get" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <label class="form-label">Donation Type</label>
+      <select name="donation_type" class="form-select">
+        <option value="">All</option>
+        <option value="monetary" {% if request.GET.donation_type == "monetary" %}selected{% endif %}>Monetary</option>
+        <option value="in_kind" {% if request.GET.donation_type == "in_kind" %}selected{% endif %}>In-Kind</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Start Date</label>
+      <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">End Date</label>
+      <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Donor Name</label>
+      <input type="text" name="donor_name" class="form-control" value="{{ request.GET.donor_name }}">
+    </div>
+    <div class="col-12 d-flex justify-content-end mt-2">
+      <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+      <a href="{% url 'report' %}" class="btn btn-secondary">Reset</a>
+    </div>
+  </form>
+  
+  <div class="mb-4">
+    <a
+      href="?{{ request.GET.urlencode }}&format=csv"
+      class="btn btn-outline-primary me-2"
+      >Download CSV</a
+    >
+    <a
+      href="?{{ request.GET.urlencode }}&format=pdf"
+      class="btn btn-outline-danger"
+      >Download PDF</a
+    >
+  </div>
 
   <!-- Table: Monetary Donations -->
   <h2>Monetary Donations by Donor</h2>
   <div class="card shadow-lg mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Monetary Donations</h5>
-      <select id="monetaryRecords" class="form-select form-select-sm w-auto ms-auto">
+      <select
+        id="monetaryRecords"
+        class="form-select form-select-sm w-auto ms-auto"
+      >
         <option value="5" selected>5</option>
         <option value="10">10</option>
         <option value="15">15</option>
@@ -34,7 +74,10 @@
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table id="monetaryTable" class="table table-striped table-hover table-bordered mb-0">
+        <table
+          id="monetaryTable"
+          class="table table-striped table-hover table-bordered mb-0"
+        >
           <thead class="table-dark">
             <tr>
               <th></th>
@@ -44,17 +87,17 @@
           </thead>
           <tbody>
             {% for donor in donations_per_donor %}
-              <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>
-                  {% if donation.donor.first_name or donation.donor.last_name %}
-                    {{ donation.donor.first_name|default:"" }} {{ donation.donor.last_name|default:"" }}
-                  {% else %}
-                    {{donation.donor.username|default:"Anonymous"}}
-                  {% endif %}
-                </td> 
-                <td>${{ donor.total_donated }}</td>
-              </tr>
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>
+                {% if donation.donor.first_name or donation.donor.last_name %}
+                  {{ donation.donor.first_name|default:"" }} {{ donation.donor.last_name|default:"" }}
+                {% else %}
+                  {{donation.donor.username|default:"Anonymous"}}
+                {% endif %}
+              </td> 
+              <td>${{ donor.total_donated }}</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
@@ -76,7 +119,10 @@
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table id="kindTable" class="table table-striped table-hover table-bordered mb-0">
+        <table
+          id="kindTable"
+          class="table table-striped table-hover table-bordered mb-0"
+        >
           <thead class="table-dark">
             <tr>
               <th></th>
@@ -89,20 +135,20 @@
           </thead>
           <tbody>
             {% for donation in in_kind_donations %}
-              <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>
-                  {% if donation.donor.first_name or donation.donor.last_name %}
-                    {{ donation.donor.first_name|default:"" }} {{ donation.donor.last_name|default:"" }}
-                  {% else %}
-                    Anonymous
-                  {% endif %}
-                </td>                
-                <td>{{ donation.item_name|capfirst }}</td>
-                <td>{{ donation.item_quantity }}</td>
-                <td>{{ donation.item_description|capfirst }}</td>
-                <td>{{ donation.pickup_address }}</td>
-              </tr>
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>
+                {% if donation.donor.first_name or donation.donor.last_name %}
+                  {{ donation.donor.first_name|default:"" }} {{ donation.donor.last_name|default:"" }}
+                {% else %}
+                  Anonymous
+                {% endif %}
+              </td>  
+              <td>{{ donation.item_name|capfirst }}</td>
+              <td>{{ donation.item_quantity }}</td>
+              <td>{{ donation.item_description|capfirst }}</td>
+              <td>{{ donation.pickup_address }}</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+    th { background-color: #eee; }
+  </style>
+</head>
+<body>
+  <h2>Donation Report</h2>
+  <p><strong>Total Donations:</strong> ${{ total_donations }}</p>
+  <p><strong>Number of Donors:</strong> {{ number_of_donors }}</p>
+
+  <h3>Monetary Donations</h3>
+  <table>
+    <tr><th>Donor</th><th>Total Donated</th></tr>
+    {% for donor in donations_per_donor %}
+      <tr>
+        <td>{{ donor.donor__first_name }} {{ donor.donor__last_name }}</td>
+        <td>${{ donor.total_donated }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+
+  <h3>In-Kind Donations</h3>
+  <table>
+    <tr>
+      <th>Donor</th><th>Item</th><th>Qty</th><th>Description</th><th>Pickup Address</th>
+    </tr>
+    {% for donation in in_kind_donations %}
+      <tr>
+        <td>{{ donation.donor.first_name }} {{ donation.donor.last_name }}</td>
+        <td>{{ donation.item_name }}</td>
+        <td>{{ donation.item_quantity }}</td>
+        <td>{{ donation.item_description }}</td>
+        <td>{{ donation.pickup_address }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

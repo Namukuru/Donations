@@ -1,9 +1,16 @@
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from ..models import Donation, Agent
 from ..utils import get_address_from_coordinates
+from django.template.loader import get_template
+from django.shortcuts import render
+from ..models import Donation, Agent
 from django.core.cache import cache
-from django.db.models import Sum
+from django.db.models import Sum, Q
+from django.http import HttpResponse
+from io import BytesIO
+import csv
+
+from xhtml2pdf import pisa
+from datetime import datetime
 
 @login_required
 def admin_dashboard(request):
@@ -35,29 +42,49 @@ def admin_dashboard(request):
             
     return render(request, "admin.html", context)
 
+
 def report(request):
-    # Use select_related to optimize foreign key queries
+    # Extract filters from request
+    donation_type = request.GET.get("donation_type")
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+    donor_name = request.GET.get("donor_name")
+
+    # Base queryset
     donations = Donation.objects.select_related("donor")
 
-    # Aggregate monetary donations in one query
+    # Apply filters
+    if donation_type in ["monetary", "in_kind"]:
+        donations = donations.filter(donation_type=donation_type)
+    if start_date:
+        donations = donations.filter(date__gte=start_date)
+    if end_date:
+        donations = donations.filter(date__lte=end_date)
+    if donor_name:
+        donations = donations.filter(
+            Q(donor__first_name__icontains=donor_name) |
+            Q(donor__last_name__icontains=donor_name)
+        )
+
+    # Aggregate total monetary donations
     total_donations = donations.filter(donation_type="monetary").aggregate(
         total=Sum("amount")
     )["total"] or 0
 
-    # Optimize donor count query using distinct on donor_id
+    # Count distinct donors
     number_of_donors = donations.values("donor_id").distinct().count()
 
-    # Fetch total donations per donor efficiently
+    # Monetary donations per donor
     donations_per_donor = (
         donations.filter(donation_type="monetary")
         .values("donor__first_name", "donor__last_name")
         .annotate(total_donated=Sum("amount"))
     )
 
-    # Fetch in-kind donations with donor data
+    # In-kind donations
     in_kind_donations = donations.filter(donation_type="in_kind").select_related("donor")
 
-    # Cache pickup addresses to avoid repeated function calls
+    # Add pickup addresses from cache or function
     for donation in in_kind_donations:
         cache_key = f"pickup_address_{donation.id}"
         pickup_address = cache.get(cache_key)
@@ -68,10 +95,37 @@ def report(request):
                 if donation.pickup_location
                 else "No pickup location provided"
             )
-            cache.set(cache_key, pickup_address, timeout=86400)  # Cache for 1 day
+            cache.set(cache_key, pickup_address, timeout=86400)
 
-        donation.pickup_address = pickup_address  # Attach cached address
+        donation.pickup_address = pickup_address
 
+    # Handle export formats
+    format = request.GET.get("format")
+
+    if format == "csv":
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="donation_report.csv"'
+        writer = csv.writer(response)
+        writer.writerow(["Donor", "Total Donated"])
+        for donor in donations_per_donor:
+            name = f"{donor['donor__first_name']} {donor['donor__last_name']}".strip()
+            writer.writerow([name or "Anonymous", donor["total_donated"]])
+        return response
+
+    elif format == "pdf":
+        template = get_template("report_pdf.html")
+        html = template.render({
+            "total_donations": total_donations,
+            "number_of_donors": number_of_donors,
+            "donations_per_donor": donations_per_donor,
+            "in_kind_donations": in_kind_donations,
+        })
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="donation_report.pdf"'
+        pisa.CreatePDF(BytesIO(html.encode("UTF-8")), dest=response)
+        return response
+
+    # Default HTML render
     context = {
         "total_donations": total_donations,
         "number_of_donors": number_of_donors,
@@ -79,5 +133,4 @@ def report(request):
         "in_kind_donations": in_kind_donations,
     }
     return render(request, "report.html", context)
-
 
