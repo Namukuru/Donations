@@ -7,9 +7,11 @@ from django.core.cache import cache
 from django.db.models import Sum, Q
 from django.http import HttpResponse
 from io import BytesIO
+import pandas as pd
 import csv
-
+import json
 from xhtml2pdf import pisa
+
 from datetime import datetime
 
 @login_required
@@ -133,4 +135,51 @@ def report(request):
         "in_kind_donations": in_kind_donations,
     }
     return render(request, "report.html", context)
+
+
+def in_kind_donations_analysis(request):
+    # Fetch in-kind donations
+    in_kind_donations = Donation.objects.filter(donation_type="in_kind").values(
+        'item_name', 'item_quantity', 'pickup_location', 'date'
+    )
+
+    # Convert to Pandas DataFrame
+    df = pd.DataFrame(in_kind_donations)
+
+    if df.empty:
+        context = {
+            'most_donated_items': {},
+            'monthly_quantities': json.dumps({}),
+            'pickup_locations': {},
+        }
+        return render(request, 'in_kind_analysis.html', context)
+
+    # Most donated items
+    most_donated_items = (
+        df.groupby('item_name')['item_quantity']
+        .sum()
+        .sort_values(ascending=False)
+        .to_dict()
+    )
+
+    # Convert date column
+    df['date'] = pd.to_datetime(df['date'])
+    df['year_month'] = df['date'].dt.to_period('M').astype(str)
+
+    monthly_quantities = (
+        df.groupby('year_month')['item_quantity']
+        .sum()
+        .to_dict()
+    )
+
+    # Pickup locations
+    pickup_locations = df['pickup_location'].value_counts().to_dict()
+
+    # Pass data to the template (convert monthly_quantities to JSON)
+    context = {
+        'most_donated_items': most_donated_items,
+        'monthly_quantities': json.dumps(monthly_quantities),  # Important
+        'pickup_locations': pickup_locations,
+    }
+    return render(request, 'in_kind_analysis.html', context)
 

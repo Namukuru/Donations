@@ -4,7 +4,7 @@ from .views.auth_views import login_user, logout_user, register_user
 from .views.donation_views import donate, account
 from .views.need_views import need_list, need_create, need_update, need_delete
 from .views.profile_views import profile, edit_profile
-from .views.admin_views import admin_dashboard,report
+from .views.admin_views import admin_dashboard, report, in_kind_donations_analysis
 from .views.general_views import home,about,jobs, assign_agent, unassign_agent,mark_completed
 from django.conf import settings
 from django.conf.urls.static import static
@@ -36,6 +36,7 @@ urlpatterns = [
 
     # Admin Dashboard
     path("admin-dashboard/", admin_dashboard, name="admin_dashboard"),
+    path('analysis/in-kind/', in_kind_donations_analysis, name='in_kind_donations_analysis'),
 
     # Needs Management
     path("needs/", need_list, name="need_list"),

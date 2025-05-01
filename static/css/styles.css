@@ -4,6 +4,8 @@
     font-size: 16px; 
     line-height: 1.6; 
     color: #003259ff;
+    margin: 0;
+    padding: 0;
   }
   
   /*Styling the alert messages*/

@@ -1,0 +1,85 @@
+{% extends 'base.html' %} {% block content %} {% load static %}
+<link rel="stylesheet" href="{% static 'css/analysis.css' %}" />
+<div class="container my-5">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <h2 class="mb-4">In-Kind Donations Analysis</h2>
+  
+  <!-- Most Donated Items -->
+  <h3>Most Donated Items</h3>
+  <div class="table-responsive mb-4">
+    <table class="table table-striped table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th>Item</th>
+          <th>Total Quantity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item, quantity in most_donated_items.items %}
+        <tr>
+          <td>{{ item }}</td>
+          <td>{{ quantity }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Quantity of Items Donated Over Time -->
+  <h3>Quantity of Items Donated Over Time</h3>
+  <div
+    class="chart-container text-start"
+    style="position: relative; height: 300px; width: 600px"
+  >
+    <canvas id="monthlyQuantitiesChart"></canvas>
+  </div>
+  <script>
+    const monthlyQuantitiesData = {{ monthly_quantities|safe }};
+    console.log("Monthly quantities:", monthlyQuantitiesData);
+
+    const monthlyQuantitiesCtx = document.getElementById('monthlyQuantitiesChart').getContext('2d');
+    new Chart(monthlyQuantitiesCtx, {
+      type: 'line',
+      data: {
+        labels: Object.keys(monthlyQuantitiesData),
+        datasets: [{
+          label: 'Total Quantity',
+          data: Object.values(monthlyQuantitiesData),
+          borderColor: 'blue',
+          backgroundColor: 'rgba(0, 0, 255, 0.1)',
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false, /* Allow custom height and width */
+        plugins: {
+          legend: { position: 'top' },
+        }
+      }
+    });
+  </script>
+<br>
+  <!-- Pickup Locations -->
+  <h3>Pickup Locations</h3>
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th>Location</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for location, count in pickup_locations.items %}
+        <tr>
+          <td>{{ location }}</td>
+          <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -16,12 +16,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&display=swap" rel="stylesheet">
   </head>
   <body style="background-color: #f5f5f5;">
-
     <!-- Hide navbar on login and register pages -->
     {% if request.resolver_match.url_name != "login_user" and request.resolver_match.url_name != "register" %}
       {% include 'navbar.html' %}
     {% endif %}
-
     <div class="container">
       <br />
       <!-- Alert messages -->
@@ -43,7 +41,6 @@
           </div>
         {% endfor %}
       {% endif %}
-      
       {% block content %}{% endblock %}
     </div>
 
